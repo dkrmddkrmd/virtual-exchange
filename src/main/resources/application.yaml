@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: virtual-exchange
+
+  datasource:
+    # docker run 명령어로 띄운 DB 정보와 일치해야 합니다.
+    url: jdbc:mysql://localhost:3306/stock_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: '1234' # Docker 실행할 때 설정한 비밀번호
+
+  jpa:
+    # 서버 켤 때마다 Entity(자바 객체)랑 DB 테이블을 비교해서 다르면 업데이트해줌 (개발용 꿀기능)
+    hibernate:
+      ddl-auto: update
+    # 실행되는 SQL 쿼리를 로그에 보여줌
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true 
