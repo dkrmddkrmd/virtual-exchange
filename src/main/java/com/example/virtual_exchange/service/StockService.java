@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -45,5 +46,11 @@ public class StockService {
                         stockRepository.save(stock);
                     }
                 });
+    }
+
+    // 전체 주식 목록 조회
+    public List<Stock> getStocks() {
+        // findAll()은 이미 List<Stock>을 반환합니다. 바로 리턴하세요!
+        return stockRepository.findAll();
     }
 }

@@ -36,10 +36,12 @@ class UserServiceTest {
         assertThat(foundUser.getName()).isEqualTo("test");
 
         //then 2
-        Account foundAccount = accountRepository.findAll().stream()
-                .filter(a -> a.getUser().getId().equals(userId))
-                .findFirst()
-                .get();
+//        Account foundAccount = accountRepository.findAll().stream()
+//                .filter(a -> a.getUser().getId().equals(userId))
+//                .findFirst()
+//                .get();
+
+        Account foundAccount = accountRepository.findByUserId(userId).get();
 
         assertThat(foundAccount).isNotNull();
         assertThat(foundAccount.getBalance()).isEqualTo(0L);
