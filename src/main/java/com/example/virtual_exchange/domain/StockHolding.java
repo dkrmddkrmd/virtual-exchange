@@ -39,4 +39,12 @@ public class StockHolding {
         this.quantity += amount;
         this.avgPrice = totalCost / this.quantity;
     }
+
+    public void decreaseQuantity(Long amount) {
+        if (this.quantity < amount) {
+            throw new IllegalStateException("보유 수량이 부족하여 매도할 수 없습니다.");
+        }
+        this.quantity -= amount;
+
+    }
 }
