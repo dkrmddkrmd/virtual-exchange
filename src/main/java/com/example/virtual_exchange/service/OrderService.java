@@ -1,6 +1,7 @@
 package com.example.virtual_exchange.service;
 
 import com.example.virtual_exchange.domain.*;
+import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -8,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional // (중요) 이 메소드 안의 모든 DB 작업은 한 몸이다! (하나라도 실패하면 롤백)
+@Transactional
 public class OrderService {
 
     private final UserRepository userRepository;
@@ -17,52 +18,54 @@ public class OrderService {
     private final StockHoldingRepository stockHoldingRepository;
     private final OrderRepository orderRepository;
 
-    public void buy(Long userId, String code, Long quantity) {
-        // 1. 조회: 필요한 객체들을 가장 최신 상태로 가져온다.
-        // (없으면 예외 발생시키는 게 안전함)
+    // [New] 외부에서 들어오는 유일한 창구
+    public void createOrder(OrderRequestDto dto) {
+        // 1. DTO에서 주문 타입 확인 ("BUY" or "SELL")
+        if ("BUY".equalsIgnoreCase(dto.getOrderType())) {
+            // 2. 매수 로직 호출
+            buy(dto.getUserId(), dto.getCode(), dto.getQuantity());
+        } else if ("SELL".equalsIgnoreCase(dto.getOrderType())) {
+            // 3. 매도 로직 호출
+            sell(dto.getUserId(), dto.getCode(), dto.getQuantity());
+        } else {
+            // 4. 예외 처리 (BUY도 SELL도 아닌 이상한 값이 들어왔을 때)
+            throw new IllegalArgumentException("잘못된 주문 타입입니다.");
+        }
+    }
+
+    // 내부 로직 (이제 굳이 public일 필요가 없으므로 private으로 바꾸는 것을 추천합니다!)
+    private void buy(Long userId, String code, Long quantity) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
-
         Stock stock = stockRepository.findById(code)
                 .orElseThrow(() -> new IllegalArgumentException("없는 종목입니다."));
-
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("계좌가 없습니다."));
 
-        // 2. 가격 계산 (Double -> Long 형변환 주의!)
-        // 100.0 * 5 = 500.0 -> (long) 500
         long totalPrice = (long) (stock.getCurrentPrice() * quantity);
 
-        // 3. 잔고 확인 (검증)
         if (account.getBalance() < totalPrice) {
             throw new IllegalStateException("잔액이 부족합니다.");
         }
 
-        // 4. 돈 빼기 (Account 변경)
         account.decreaseBalance(totalPrice);
 
-        // 5. 주식 더하기 (StockHolding 변경) - [가장 어려운 부분!]
-        // "이 유저가 이 주식을 가지고 있나?" 확인
         StockHolding holding = stockHoldingRepository.findByUserAndStock(user, stock)
-                .orElse(null); // 없으면 null
+                .orElse(null);
 
         if (holding == null) {
-            // (A) 없으면: 새로 만들어서 저장
             StockHolding newHolding = new StockHolding(user, stock, quantity, stock.getCurrentPrice());
             stockHoldingRepository.save(newHolding);
         } else {
-            // (B) 있으면: 물타기 (수량 늘리고 평단가 수정)
             holding.addQuantity(quantity, stock.getCurrentPrice());
-            // JPA 변경 감지(Dirty Checking) 덕분에 save 안 해도 자동 업데이트됨!
         }
 
-        // 6. 기록 남기기 (Order 저장)
         Order order = new Order(user, stock, OrderType.BUY, stock.getCurrentPrice(), quantity);
         orderRepository.save(order);
     }
 
-    public void sell(Long userId, String code, Long quantity) {
-        // 1. 기본 조회 (User, Stock, Account) - OK
+    // 내부 로직 (private 추천)
+    private void sell(Long userId, String code, Long quantity) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
         Stock stock = stockRepository.findById(code)
@@ -70,18 +73,17 @@ public class OrderService {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("계좌가 없습니다."));
 
-        // 2. 보유 주식 조회 - OK
         StockHolding stockHolding = stockHoldingRepository.findByUserAndStock(user, stock)
                 .orElseThrow(() -> new IllegalArgumentException("매도할 주식이 없습니다."));
 
-        // 4. 가격 계산 및 입금 - OK
+        // 매도 가능한지 수량 체크 로직이 StockHolding 도메인 안에 있었죠? (decreaseQuantity)
+        // 거기서 예외를 던져주겠지만, 여기서 미리 체크해도 좋습니다.
+
         long totalPrice = (long) (stock.getCurrentPrice() * quantity);
         account.increaseBalance(totalPrice);
 
-        // 5. 주식 차감
-        stockHolding.decreaseQuantity(quantity); // (O) 가격 정보 필요 없음
+        stockHolding.decreaseQuantity(quantity);
 
-        // 6. 기록 저장 - OK
         Order order = new Order(user, stock, OrderType.SELL, stock.getCurrentPrice(), quantity);
         orderRepository.save(order);
     }

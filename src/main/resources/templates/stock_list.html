@@ -31,11 +31,13 @@
 
                 <button class="btn btn-success btn-sm"
                         th:data-code="${stock.code}"
-                        onclick="buyStock(this.getAttribute('data-code'))">매수</button>
+                        onclick="orderStock(this.getAttribute('data-code'), 'BUY')">
+                </button>
 
                 <button class="btn btn-danger btn-sm"
                         th:data-code="${stock.code}"
-                        onclick="sellStock(this.getAttribute('data-code'))">매도</button>
+                        onclick="orderStock(this.getAttribute('data-code'), 'SELL')">
+                </button>
             </div>
         </td>
     </tr>
@@ -43,55 +45,51 @@
 </table>
 
 <script>
-    function buyStock(code) {
+    // 1. 유저 ID 관리: 나중에 로그인이 구현되면 이 부분만 수정하면 됩니다.
+    const CURRENT_USER_ID = 29;
+
+    // 2. 통합된 주문 함수
+    function orderStock(code, type) {
+        // 수량 가져오기
         const quantityInput = document.getElementById('quantity_' + code);
         const quantity = quantityInput.value;
 
+        // 유효성 검사 (수량이 없거나 0 이하일 때)
+        if (!quantity || quantity <= 0) {
+            alert("올바른 수량을 입력해주세요.");
+            return;
+        }
+
+        // 백엔드 DTO(OrderRequestDto) 구조에 맞게 데이터 생성
+        // orderType: "BUY" 또는 "SELL" 문자열이 백엔드의 Enum으로 자동 변환됨
         const requestData = {
-            userId: 29,
+            userId: CURRENT_USER_ID,
             code: code,
-            quantity: Number(quantity)
+            quantity: Number(quantity),
+            orderType: type
         };
 
-        fetch('/orders/buy', {
+        // 매수/매도 구분 없이 하나의 주소로 전송
+        fetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)
         })
-            .then(response => {
+            .then(async response => {
                 if (response.ok) {
-                    alert(code + " " + quantity + "개 매수 성공!");
-                    window.location.reload();
+                    // 성공 메시지 출력 (응답 본문에 메시지가 있으면 그것을, 없으면 기본 메시지)
+                    const msg = await response.text();
+                    alert(msg || (type === 'BUY' ? "매수 성공!" : "매도 성공!"));
+                    window.location.reload(); // 새로고침해서 잔고/보유량 갱신 확인
                 } else {
-                    // 에러 메시지를 alert로 띄워주면 디버깅이 편합니다.
-                    response.text().then(msg => alert("매수 실패: " + msg));
+                    // 백엔드에서 보낸 에러 메시지(예: 잔액 부족 등) 출력
+                    const errorMsg = await response.text();
+                    alert("주문 실패: " + errorMsg);
                 }
             })
-            .catch(error => console.error('Error:', error));
-    }
-
-    function sellStock(code) {
-        const quantityInput = document.getElementById('quantity_' + code);
-        const quantity = quantityInput.value;
-
-        const requestData = {
-            userId: 29,
-            code: code,
-            quantity: Number(quantity)
-        };
-
-        fetch('/orders/sell', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestData)
-        })
-            .then(response => {
-                if (response.ok) {
-                    alert(code + " " + quantity + "개 매도 성공!");
-                    window.location.reload();
-                } else {
-                    response.text().then(msg => alert("매도 실패: " + msg));
-                }
+            .catch(error => {
+                console.error('Error:', error);
+                alert("서버 통신 중 오류가 발생했습니다.");
             });
     }
 </script>

@@ -11,24 +11,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/orders")
+@RequestMapping("/api/orders")
 public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/buy")
-    public ResponseEntity<String> buyStock(@RequestBody OrderRequestDto requestDto) {
-        // 서비스 호출 (DTO에서 데이터를 꺼내서 전달)
-        orderService.buy(requestDto.getUserId(), requestDto.getCode(), requestDto.getQuantity());
+    @PostMapping
+    public ResponseEntity<String> createOrder(@RequestBody OrderRequestDto requestDto) {
 
-        return ResponseEntity.ok("매수 주문 성공!");
-    }
+        // Controller는 if/else 로직을 몰라도 됩니다.
+        // 그냥 Service의 createOrder한테 "이거 처리해줘"라고 던지면 끝입니다.
+        orderService.createOrder(requestDto);
 
-    @PostMapping("/sell")
-    public ResponseEntity<String> sellStock(@RequestBody OrderRequestDto requestDto) {
-        // 서비스 호출 (DTO에서 데이터를 꺼내서 전달)
-        orderService.sell(requestDto.getUserId(), requestDto.getCode(), requestDto.getQuantity());
-
-        return ResponseEntity.ok("매도 주문 성공!");
+        return ResponseEntity.ok("주문 접수 완료");
     }
 }
