@@ -32,11 +32,13 @@
                 <button class="btn btn-success btn-sm"
                         th:data-code="${stock.code}"
                         onclick="orderStock(this.getAttribute('data-code'), 'BUY')">
+                    매수
                 </button>
 
                 <button class="btn btn-danger btn-sm"
                         th:data-code="${stock.code}"
                         onclick="orderStock(this.getAttribute('data-code'), 'SELL')">
+                    매도
                 </button>
             </div>
         </td>

@@ -61,7 +61,8 @@ public class StockHoldingService {
                 totalPurchaseAmount,
                 totalEvaluationAmount,
                 totalProfitLoss,
-                returnRate
+                returnRate,
+                myStocks
         );
     }
 }

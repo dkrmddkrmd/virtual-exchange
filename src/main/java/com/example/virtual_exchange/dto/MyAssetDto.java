@@ -1,8 +1,11 @@
 package com.example.virtual_exchange.dto;
 
+import com.example.virtual_exchange.domain.StockHolding;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -14,4 +17,5 @@ public class MyAssetDto {
     private Long totalEvaluationAmount;
     private Long totalProfitLoss;
     private Double returnRate; // Long -> Double 변경 (수익률은 소수점)
+    private List<StockHolding> stockHoldings;
 }
