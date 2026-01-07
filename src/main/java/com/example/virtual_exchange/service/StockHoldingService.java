@@ -3,6 +3,7 @@ package com.example.virtual_exchange.service;
 import com.example.virtual_exchange.domain.Account;
 import com.example.virtual_exchange.domain.StockHolding;
 import com.example.virtual_exchange.dto.MyAssetDto;
+import com.example.virtual_exchange.dto.StockHoldingDto;
 import com.example.virtual_exchange.repository.AccountRepository;
 import com.example.virtual_exchange.repository.StockHoldingRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,11 @@ public class StockHoldingService {
             returnRate = ((double) totalProfitLoss / totalPurchaseAmount) * 100;
         }
 
+        // ★ 핵심 수정 부분: Entity List -> DTO List 변환
+        List<StockHoldingDto> holdingDtos = myStocks.stream()
+                .map(StockHoldingDto::new) // 생성자 참조를 통해 변환
+                .toList(); // java 16+ (그 이하는 collect(Collectors.toList())
+
         // 5. 반환 (Builder 안 쓰고 생성자로 하는 법)
         // DTO 클래스 위에 @AllArgsConstructor가 있어야 합니다.
         return new MyAssetDto(
@@ -62,7 +68,7 @@ public class StockHoldingService {
                 totalEvaluationAmount,
                 totalProfitLoss,
                 returnRate,
-                myStocks
+                holdingDtos
         );
     }
 }
