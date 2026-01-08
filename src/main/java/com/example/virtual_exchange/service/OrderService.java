@@ -1,11 +1,14 @@
 package com.example.virtual_exchange.service;
 
 import com.example.virtual_exchange.domain.*;
+import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -86,5 +89,12 @@ public class OrderService {
 
         Order order = new Order(user, stock, OrderType.SELL, stock.getCurrentPrice(), quantity);
         orderRepository.save(order);
+    }
+
+    public List<OrderHistoryDto> getOrderLists(Long userId){
+
+        return orderRepository.findAllByUserIdWithStock(userId).stream()
+                .map(OrderHistoryDto::new)
+                .toList();
     }
 }
