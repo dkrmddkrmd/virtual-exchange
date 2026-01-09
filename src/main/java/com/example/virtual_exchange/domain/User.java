@@ -20,9 +20,13 @@ public class User {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     public User(String email, String password, String name) {
         this.email = email;
         this.password = password;
         this.name = name;
+        this.role = Role.USER;
     }
 }

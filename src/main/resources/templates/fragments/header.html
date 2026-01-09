@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="headerFragment">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/stocks">🚀 가상 거래소</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/stocks">📈 주식 시세</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/my-assets">💰 내 자산</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/order_list.html">📜 거래 내역</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">로그인 (준비중)</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+</html>
