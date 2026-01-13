@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer; // 추가됨
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 // AntPathRequestMatcher 임포트 없어도 됨!
 
@@ -24,7 +26,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 
                         // 메인화면, 회원가입 등 누구나 봐야 하는 페이지
-                        .requestMatchers("/", "/members/new", "/login").permitAll()
+                        .requestMatchers("/", "/login", "/order_list.html", "/api/signup").permitAll()
 
                         // 그 외에는 다 로그인 필요
                         .anyRequest().authenticated()
@@ -32,7 +34,7 @@ public class SecurityConfig {
 
                 // 3. 로그인 설정
                 .formLogin(form -> form
-                        .loginPage("/") // 커스텀 로그인 페이지 (컨트롤러에 @GetMapping("/") 있어야 함)
+                        .loginPage("/login") // 커스텀 로그인 페이지 (컨트롤러에 @GetMapping("/") 있어야 함)
                         .usernameParameter("email") // form 태그의 name="email"
                         .defaultSuccessUrl("/") // 성공 시 리다이렉트
                         .permitAll() // 로그인 페이지 접근 권한 열어주기
@@ -46,5 +48,11 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // BCrypt라는 해시 함수를 써서 비밀번호를 암호화하는 기계를 반환
+        return new BCryptPasswordEncoder();
     }
 }
