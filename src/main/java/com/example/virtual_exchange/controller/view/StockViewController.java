@@ -1,4 +1,4 @@
-package com.example.virtual_exchange.controller;
+package com.example.virtual_exchange.controller.view;
 
 import com.example.virtual_exchange.service.StockService;
 import lombok.RequiredArgsConstructor;

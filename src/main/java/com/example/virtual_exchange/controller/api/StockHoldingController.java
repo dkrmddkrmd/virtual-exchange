@@ -1,4 +1,4 @@
-package com.example.virtual_exchange.controller;
+package com.example.virtual_exchange.controller.api;
 
 import com.example.virtual_exchange.dto.MyAssetDto;
 import com.example.virtual_exchange.service.StockHoldingService;

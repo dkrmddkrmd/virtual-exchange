@@ -1,4 +1,4 @@
-package com.example.virtual_exchange.controller;
+package com.example.virtual_exchange.controller.view;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
