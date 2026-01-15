@@ -16,7 +16,11 @@ public class MemberController {
 
     @PostMapping("/api/signup")
     public ResponseEntity<String> signup(@RequestBody MemberSignupDto dto) {
-        userService.join(dto.getEmail(), dto.getName(), dto.getPassword());
-        return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공!"); // 201 Created 반환
+        try {
+            userService.join(dto.getEmail(), dto.getName(), dto.getPassword());
+            return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공!"); // 201 Created 반환
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

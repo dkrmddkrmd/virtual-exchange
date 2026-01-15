@@ -26,7 +26,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 
                         // 메인화면, 회원가입 등 누구나 봐야 하는 페이지
-                        .requestMatchers("/", "/login", "/order_list.html", "/api/signup").permitAll()
+                        .requestMatchers("/", "/login", "/order_list.html", "/signup", "/api/signup", "/error").permitAll()
 
                         // 그 외에는 다 로그인 필요
                         .anyRequest().authenticated()
