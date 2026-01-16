@@ -22,14 +22,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     // [New] 외부에서 들어오는 유일한 창구
-    public void createOrder(OrderRequestDto dto) {
+    public void createOrder(Long userId, OrderRequestDto dto) {
         // 1. DTO에서 주문 타입 확인 ("BUY" or "SELL")
         if ("BUY".equalsIgnoreCase(dto.getOrderType())) {
             // 2. 매수 로직 호출
-            buy(dto.getUserId(), dto.getCode(), dto.getQuantity());
+            buy(userId, dto.getCode(), dto.getQuantity());
         } else if ("SELL".equalsIgnoreCase(dto.getOrderType())) {
             // 3. 매도 로직 호출
-            sell(dto.getUserId(), dto.getCode(), dto.getQuantity());
+            sell(userId, dto.getCode(), dto.getQuantity());
         } else {
             // 4. 예외 처리 (BUY도 SELL도 아닌 이상한 값이 들어왔을 때)
             throw new IllegalArgumentException("잘못된 주문 타입입니다.");

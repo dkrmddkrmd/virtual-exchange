@@ -1,6 +1,5 @@
-package com.example.virtual_exchange.service;
+package com.example.virtual_exchange.config.auth;
 
-import com.example.virtual_exchange.config.PrincipalDetails;
 import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

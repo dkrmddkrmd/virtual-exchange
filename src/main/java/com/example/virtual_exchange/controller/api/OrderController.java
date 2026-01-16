@@ -1,6 +1,6 @@
 package com.example.virtual_exchange.controller.api;
 
-import com.example.virtual_exchange.config.PrincipalDetails;
+import com.example.virtual_exchange.config.auth.PrincipalDetails;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.service.OrderService;
@@ -19,10 +19,17 @@ public class OrderController {
     private final OrderService orderService;
 
     // 주문 생성
-    // (참고: 여기도 나중에는 principalDetails를 써서 '누가' 주문했는지 세션에서 가져오는 게 안전합니다.)
     @PostMapping
-    public ResponseEntity<String> createOrder(@RequestBody OrderRequestDto requestDto) {
-        orderService.createOrder(requestDto);
+    public ResponseEntity<String> createOrder(
+            @AuthenticationPrincipal PrincipalDetails principalDetails, // 1. 인증 정보 받기
+            @RequestBody OrderRequestDto requestDto) {
+
+        // 2. 세션에서 로그인한 사람의 ID 꺼내기
+        Long userId = principalDetails.getUser().getId();
+
+        // 3. 서비스에 ID와 주문 정보를 따로 넘겨줌 (서비스 메서드 수정 필요!)
+        orderService.createOrder(userId, requestDto);
+
         return ResponseEntity.ok("주문 접수 완료");
     }
 

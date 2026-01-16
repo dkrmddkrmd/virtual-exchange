@@ -56,6 +56,7 @@ public class StockHoldingService {
 
         // ★ 핵심 수정 부분: Entity List -> DTO List 변환
         List<StockHoldingDto> holdingDtos = myStocks.stream()
+                .filter(holding -> holding.getQuantity() > 0)
                 .map(StockHoldingDto::new) // 생성자 참조를 통해 변환
                 .toList(); // java 16+ (그 이하는 collect(Collectors.toList())
 

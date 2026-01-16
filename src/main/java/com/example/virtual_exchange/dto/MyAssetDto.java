@@ -15,6 +15,9 @@ public class MyAssetDto {
     private Long totalPurchaseAmount;
     private Long totalEvaluationAmount;
     private Long totalProfitLoss;
-    private Double returnRate; // Long -> Double 변경 (수익률은 소수점)
-    private List<StockHoldingDto> stockHoldings;
+    private Double returnRate;
+
+    // ★ [수정 필수] stockHoldings -> holdingList 로 변경!
+    // (JS가 data.holdingList 라고 부르고 있기 때문입니다)
+    private List<StockHoldingDto> holdingList;
 }

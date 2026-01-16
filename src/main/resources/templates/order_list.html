@@ -5,7 +5,6 @@
     <title>거래 내역</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* 테이블 헤더 스타일 (기존 자산 현황 페이지와 통일) */
         .table thead th {
             background-color: #212529;
             color: white;
@@ -16,7 +15,6 @@
             vertical-align: middle;
             text-align: center;
         }
-        /* 한국 주식 시장 색상: 매수(빨강), 매도(파랑) */
         .text-buy { color: #dc3545; font-weight: bold; }
         .text-sell { color: #0d6efd; font-weight: bold; }
         .badge-buy { background-color: #dc3545; }
@@ -61,17 +59,15 @@
 </div>
 
 <script>
-    // 1. 유저 ID (테스트용)
-    const USER_ID = 29;
-
-    // 2. 페이지 로딩 시 데이터 조회
+    // 1. 페이지 로딩 시 데이터 조회
     document.addEventListener("DOMContentLoaded", () => {
         fetchOrderList();
     });
 
     function fetchOrderList() {
-        // 백엔드 컨트롤러: OrderController의 @GetMapping("/api/orders/list")
-        fetch(`/api/orders/list?userId=${USER_ID}`)
+        // [수정됨] 파라미터(?userId=...) 없이 요청
+        // 백엔드가 세션(Cookie)을 보고 알아서 내 정보를 찾음
+        fetch('/api/orders/list')
             .then(response => {
                 if (!response.ok) throw new Error("네트워크 응답 실패");
                 return response.json();
@@ -86,27 +82,21 @@
             });
     }
 
-    // 3. 화면 렌더링 함수
+    // 2. 화면 렌더링 함수
     function renderOrderList(orders) {
         const tableBody = document.getElementById('orderListBody');
-        tableBody.innerHTML = ''; // 초기화
+        tableBody.innerHTML = '';
 
         if (!orders || orders.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">거래 내역이 없습니다.</td></tr>';
             return;
         }
 
-        // 최신순 정렬 (ID나 날짜 기준 내림차순 정렬이 안 되어 있다면 여기서 처리 가능)
-        // orders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
-
         orders.forEach(order => {
-            // 날짜 포맷팅 (YYYY-MM-DD HH:mm:ss)
-            const dateObj = new Date(order.orderDate); // 백엔드 필드명: orderDate 가정
+            const dateObj = new Date(order.orderDate);
             const dateStr = dateObj.toLocaleString('ko-KR');
 
-            // 매수/매도 스타일에 따른 클래스 및 텍스트 설정
-            // 백엔드 Enum이 'BUY', 'SELL'로 온다고 가정
-            const isBuy = order.orderType === "매수";
+            const isBuy = order.orderType === "매수"; // 백엔드 데이터에 따라 'BUY'인지 '매수'인지 확인 필요
             const typeBadgeClass = isBuy ? 'badge-buy' : 'badge-sell';
             const typeText = isBuy ? '매수' : '매도';
             const priceColorClass = isBuy ? 'text-buy' : 'text-sell';
@@ -125,7 +115,6 @@
         });
     }
 
-    // 숫자 콤마 포맷터
     const formatMoney = (num) => new Intl.NumberFormat('ko-KR').format(num);
 
 </script>

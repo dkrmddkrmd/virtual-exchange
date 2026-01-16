@@ -5,241 +5,166 @@
     <title>내 자산 현황</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* 한국 주식 시장 색상 표준: 상승(Red), 하락(Blue) */
-        .card-value { font-size: 1.5rem; font-weight: bold; }
-        .positive { color: #dc3545 !important; font-weight: bold; } /* 빨강 (수익) */
-        .negative { color: #0d6efd !important; font-weight: bold; } /* 파랑 (손실) */
-
-        /* 테이블 헤더 스타일 강제 적용 */
+        /* 깔끔한 테이블 헤더 */
         .table thead th {
-            background-color: #212529;
-            color: white;
+            background-color: #f8f9fa; /* 밝은 회색 배경 */
+            color: #212529;
+            text-align: center;
             vertical-align: middle;
         }
-
         .table tbody td {
             vertical-align: middle;
+            text-align: center;
         }
+        /* 너무 쨍하지 않은 빨강/파랑 */
+        .text-danger-custom { color: #d9534f; font-weight: bold; }
+        .text-primary-custom { color: #0275d8; font-weight: bold; }
     </style>
 </head>
 <body class="container mt-5 mb-5">
 
-<div th:replace="~{fragments/header :: headerFragment}"></div>
+<th:block th:replace="~{fragments/header :: headerFragment}"></th:block>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>💰 내 자산 현황</h1>
-    <a href="/stocks" class="btn btn-outline-primary">주식 거래소로 이동</a>
-</div>
+<h1 class="mb-4">💰 내 자산 현황</h1>
 
-<div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="card text-center h-100 shadow-sm">
-            <div class="card-header bg-dark text-white">총 자산</div>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold">총 자산</div>
             <div class="card-body">
-                <p class="card-value" id="totalAssetAmount">Loading...</p>
+                <h4 class="card-title text-primary" id="totalAsset">0 원</h4>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100 shadow-sm">
-            <div class="card-header bg-secondary text-white">예수금 (주문 가능)</div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold">예수금(현금)</div>
             <div class="card-body">
-                <p class="card-value" id="balance">Loading...</p>
+                <h4 class="card-title" id="balance">0 원</h4>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100 shadow-sm">
-            <div class="card-header">수익률</div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold">총 매수 금액</div>
             <div class="card-body">
-                <p class="card-value" id="returnRate">Loading...</p>
+                <h4 class="card-title" id="totalPurchase">0 원</h4>
             </div>
         </div>
     </div>
-
-    <div class="col-md-4">
-        <div class="card text-center h-100 border-light">
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold">총 평가 손익 (수익률)</div>
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">총 매수 금액</h6>
-                <p class="card-text fs-4" id="totalPurchaseAmount">0 원</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100 border-light">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">총 평가 금액</h6>
-                <p class="card-text fs-4" id="totalEvaluationAmount">0 원</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100 border-light">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">총 평가 손익</h6>
-                <p class="card-text fs-4" id="totalProfitLoss">0 원</p>
+                <h4 class="card-title">
+                    <span id="totalProfit">0 원</span>
+                    <small id="returnRate" class="text-muted fs-6">(0.00%)</small>
+                </h4>
             </div>
         </div>
     </div>
 </div>
 
-<h3 class="mb-3">📋 보유 주식 목록</h3>
-<div class="table-responsive">
-    <table class="table table-hover table-bordered align-middle text-center">
-        <thead class="table-dark">
-        <tr>
-            <th>종목명</th>
-            <th>보유수량</th>
-            <th>평단가</th>
-            <th>현재가</th>
-            <th>평가금액</th>
-            <th>평가손익</th>
-            <th>수익률</th>
-            <th>관리</th>
-        </tr>
-        </thead>
-        <tbody id="stockTableBody">
-        <tr><td colspan="8">데이터를 불러오는 중...</td></tr>
-        </tbody>
-    </table>
+<h3 class="mb-3">보유 주식 목록</h3>
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>종목명</th>
+                    <th>보유 수량</th>
+                    <th>평균 단가</th>
+                    <th>현재가</th>
+                    <th>평가 금액</th>
+                    <th>평가 손익</th>
+                    <th>수익률</th>
+                </tr>
+                </thead>
+                <tbody id="assetTableBody">
+                <tr><td colspan="7" class="text-center py-4 text-muted">데이터를 불러오는 중...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
-    // 1. 유저 ID (테스트용)
-    const USER_ID = 29;
-
-    // 2. 페이지 로딩 시 데이터 가져오기
     document.addEventListener("DOMContentLoaded", () => {
-        fetch(`/api/my-assets?userId=${USER_ID}`)
+        fetchMyAssets();
+    });
+
+    function fetchMyAssets() {
+        fetch('/api/my-assets')
             .then(response => {
-                if (!response.ok) throw new Error("네트워크 응답 실패");
+                if (!response.ok) throw new Error("데이터 조회 실패");
                 return response.json();
             })
             .then(data => {
-                console.log("받은 데이터:", data); // 디버깅용 로그
-                updateSummaryUI(data); // 카드 업데이트
-                updateTableUI(data.stockHoldings); // 테이블 업데이트
+                renderAssets(data);
             })
             .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('stockTableBody').innerHTML =
-                    '<tr><td colspan="8" class="text-danger">데이터를 불러오지 못했습니다.</td></tr>';
+                console.error(error);
+                document.getElementById('assetTableBody').innerHTML =
+                    '<tr><td colspan="7" class="text-center py-4 text-danger">정보를 불러오지 못했습니다.</td></tr>';
             });
-    });
-
-    // 숫자 포맷터 (콤마 추가)
-    const formatMoney = (num) => new Intl.NumberFormat('ko-KR').format(num);
-
-    // [UI 1] 상단 요약 카드 업데이트
-    function updateSummaryUI(data) {
-        document.getElementById('totalAssetAmount').innerText = formatMoney(data.totalAssetAmount) + " 원";
-        document.getElementById('balance').innerText = formatMoney(data.balance) + " 원";
-        document.getElementById('totalPurchaseAmount').innerText = formatMoney(data.totalPurchaseAmount) + " 원";
-        document.getElementById('totalEvaluationAmount').innerText = formatMoney(data.totalEvaluationAmount) + " 원";
-
-        const profitLossElem = document.getElementById('totalProfitLoss');
-        const returnRateElem = document.getElementById('returnRate');
-
-        // null 체크 및 포맷팅
-        const profitLoss = data.totalProfitLoss || 0;
-        const returnRate = data.returnRate || 0.0;
-
-        profitLossElem.innerText = (profitLoss > 0 ? "+" : "") + formatMoney(profitLoss) + " 원";
-        returnRateElem.innerText = (returnRate > 0 ? "+" : "") + returnRate.toFixed(2) + " %";
-
-        // 색상 초기화 후 적용
-        profitLossElem.className = "card-text fs-4";
-        returnRateElem.className = "card-value";
-
-        if (profitLoss > 0) {
-            profitLossElem.classList.add('positive');
-            returnRateElem.classList.add('positive');
-        } else if (profitLoss < 0) {
-            profitLossElem.classList.add('negative');
-            returnRateElem.classList.add('negative');
-        }
     }
 
-    // [UI 2] 하단 보유 주식 테이블 업데이트
-    function updateTableUI(stockHoldings) {
-        const tableBody = document.getElementById('stockTableBody');
-        tableBody.innerHTML = ''; // 기존 내용 초기화
+    function renderAssets(data) {
+        // 1. 상단 요약 정보 업데이트
+        document.getElementById('totalAsset').innerText = formatMoney(data.totalAssetAmount) + ' 원';
+        document.getElementById('balance').innerText = formatMoney(data.balance) + ' 원';
+        document.getElementById('totalPurchase').innerText = formatMoney(data.totalPurchaseAmount) + ' 원';
 
-        if (!stockHoldings || stockHoldings.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="py-4">보유 중인 주식이 없습니다.</td></tr>';
+        const profitElem = document.getElementById('totalProfit');
+        const rateElem = document.getElementById('returnRate');
+
+        profitElem.innerText = formatMoney(data.totalProfitLoss) + ' 원';
+        rateElem.innerText = `(${data.returnRate.toFixed(2)}%)`;
+
+        updateColor(profitElem, data.totalProfitLoss);
+        updateColor(rateElem, data.totalProfitLoss);
+
+        // 2. 테이블 리스트 업데이트
+        const tbody = document.getElementById('assetTableBody');
+        tbody.innerHTML = '';
+
+        if (!data.holdingList || data.holdingList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">보유한 주식이 없습니다.</td></tr>';
             return;
         }
 
-        stockHoldings.forEach(holding => {
-            // ★ 중요: DTO 구조에 맞춰 변수명 수정됨
-            // holding.stock.name (X) -> holding.stockName (O)
-            const stockName = holding.stockName;
-            const stockCode = holding.stockCode;
-            const quantity = holding.quantity;
-            const avgPrice = holding.avgPrice;
-            const currentPrice = holding.currentPrice;
+        data.holdingList.forEach(item => {
+            // 수익/손실 계산 (백엔드 DTO에 이 필드들이 있다고 가정)
+            const profitLoss = item.evaluationAmount - item.purchaseAmount;
+            const rate = item.purchaseAmount > 0 ? (profitLoss / item.purchaseAmount) * 100 : 0;
 
-            // 계산 로직 (DTO에 필드가 없다면 여기서 계산)
-            const valuationPrice = currentPrice * quantity; // 평가금액
-            const profitLoss = (currentPrice - avgPrice) * quantity; // 평가손익
-            const profitRate = holding.profitRate || 0; // DTO에 있는 값 사용
+            const profitClass = profitLoss > 0 ? 'text-danger-custom' : (profitLoss < 0 ? 'text-primary-custom' : '');
 
-            // 색상 클래스 결정
-            const colorClass = profitLoss > 0 ? 'positive' : (profitLoss < 0 ? 'negative' : '');
-            const sign = profitLoss > 0 ? '+' : '';
-
-            // 행(Row) 생성
             const row = `
-                    <tr>
-                        <td class="fw-bold">${stockName}</td>
-                        <td>${quantity}주</td>
-                        <td>${formatMoney(Math.round(avgPrice))}원</td>
-                        <td>${formatMoney(currentPrice)}원</td>
-                        <td>${formatMoney(valuationPrice)}원</td>
-                        <td class="${colorClass}">${sign}${formatMoney(Math.round(profitLoss))}원</td>
-                        <td class="${colorClass}">${sign}${profitRate.toFixed(2)}%</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm"
-                                onclick="sellStock('${stockCode}', '${stockName}')">
-                                매도
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            tableBody.innerHTML += row;
+                <tr>
+                    <td class="fw-bold">${item.stockName}</td>
+                    <td>${formatMoney(item.quantity)}주</td>
+                    <td>${formatMoney(item.avgPrice)}원</td>
+                    <td>${formatMoney(item.currentPrice)}원</td>
+                    <td>${formatMoney(item.evaluationAmount)}원</td>
+                    <td class="${profitClass}">${formatMoney(profitLoss)}원</td>
+                    <td class="${profitClass}">${rate.toFixed(2)}%</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
         });
     }
 
-    // [기능] 매도 함수 (API 호출)
-    function sellStock(code, name) {
-        const quantity = prompt(`${name} 종목을 몇 주 매도하시겠습니까?`, "1");
-        if (!quantity) return; // 취소
+    function formatMoney(num) {
+        return new Intl.NumberFormat('ko-KR').format(num);
+    }
 
-        const requestData = {
-            userId: USER_ID,
-            stockCode: code, // 백엔드 DTO 필드명 확인 필요 (보통 stockCode or code)
-            quantity: Number(quantity)
-        };
-
-        // 주의: 매도 API 주소가 정확한지 확인하세요 (/api/orders 또는 /api/sell 등)
-        fetch('/api/orders/sell', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestData)
-        })
-            .then(async response => {
-                if (response.ok) {
-                    alert("매도 주문이 완료되었습니다.");
-                    window.location.reload(); // 새로고침
-                } else {
-                    const errorMsg = await response.text();
-                    alert("매도 실패: " + errorMsg);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("서버 통신 오류");
-            });
+    function updateColor(element, value) {
+        element.classList.remove('text-danger-custom', 'text-primary-custom', 'text-muted');
+        if (value > 0) element.classList.add('text-danger-custom');
+        else if (value < 0) element.classList.add('text-primary-custom');
+        else element.classList.add('text-muted');
     }
 </script>
 </body>

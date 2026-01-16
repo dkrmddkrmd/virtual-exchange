@@ -1,4 +1,4 @@
-package com.example.virtual_exchange.config;
+package com.example.virtual_exchange.config.auth;
 
 import com.example.virtual_exchange.domain.User; // 유저 엔티티 경로
 import org.springframework.security.core.GrantedAuthority;
