@@ -4,6 +4,7 @@ import com.example.virtual_exchange.config.auth.PrincipalDetails;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; // 2. 어노테이션 import
@@ -22,7 +23,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<String> createOrder(
             @AuthenticationPrincipal PrincipalDetails principalDetails, // 1. 인증 정보 받기
-            @RequestBody OrderRequestDto requestDto) {
+            @RequestBody @Valid OrderRequestDto requestDto) {
 
         // 2. 세션에서 로그인한 사람의 ID 꺼내기
         Long userId = principalDetails.getUser().getId();

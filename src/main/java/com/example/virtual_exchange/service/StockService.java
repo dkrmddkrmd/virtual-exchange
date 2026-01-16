@@ -3,54 +3,61 @@ package com.example.virtual_exchange.service;
 import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.dto.UpbitTickerDto;
 import com.example.virtual_exchange.repository.StockRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class StockService {
     private final StockRepository stockRepository;
 
+    //서버 시작 시 1회 실행 (내부 호출이지만 Repository가 있어서 안전함)
+    @PostConstruct
+    public void init() {
+        getStockPrice();
+    }
+
     @Transactional
     public void getStockPrice() {
-        // 업비트 API: 비트코인(BTC)과 이더리움(ETH) 가격을 달라고 요청
-        String url = "https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH";
+        // 1. [수정] 안전한 메이저 코인 30개 리스트 (상장폐지 위험 적은 종목 위주)
+        // 공백 없이 콤마(,)로만 연결해야 합니다.
+        String markets = "KRW-XRP,KRW-BTC,KRW-BARD,KRW-ETH,KRW-USDT,KRW-IP,KRW-MOVE,KRW-SOL,KRW-GRS,KRW-BREV,KRW-KAITO,KRW-DOGE,KRW-ZBT,KRW-SAFE,KRW-BERA,KRW-BCH,KRW-BOUNTY,KRW-ADA,KRW-AVNT,KRW-SUI,KRW-MED,KRW-CHZ,KRW-VIRTUAL,KRW-ME,KRW-AXS,KRW-ZKP,KRW-ONDO,KRW-XPL,KRW-XTZ,KRW-PENGU";
 
-        WebClient.create() // WebClient 생성
-                .get()     // GET 요청
-                .uri(url)  // 주소 설정
-                .retrieve() // 결과 주세요
-                .bodyToFlux(UpbitTickerDto.class) // 받은 JSON을 DTO 리스트로 변환해라!
+        WebClient.create("https://api.upbit.com") // 기본 URL 설정
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/v1/ticker") // 경로 설정
+                        .queryParam("markets", markets) // [중요] 쿼리 파라미터 자동 인코딩
+                        .build())
+                .retrieve()
+                .bodyToFlux(UpbitTickerDto.class)
                 .subscribe(dto -> {
-                    // dto에는 "KRW-BTC", 70000000.0 같은 데이터가 들어있음
-                    System.out.println("종목: " + dto.getMarket() + ", 가격: " + dto.getTrade_price());
+                    // 로그 확인
+                    // System.out.println("종목: " + dto.getMarket() + ", 가격: " + dto.getTrade_price());
 
-                    // [미션] TODO: 여기서 리포지토리를 불러서 DB에 저장하거나 업데이트 하세요!
-                    // 1. dto.getMarket() (코드)으로 DB에서 주식을 찾는다.
                     Stock stock = stockRepository.findById(dto.getMarket())
                             .orElse(null);
+
                     if (stock == null) {
-                        // 2. 없으면? -> 새로 만들어서 저장 (INSERT)
-                        // (업비트 Ticker API에는 한글 이름이 없어서, 일단 이름에도 코드를 넣습니다)
+                        // 업비트는 한글 이름을 안 주므로, 일단 코드로 이름 저장 (나중에 매핑 가능)
                         Stock newStock = new Stock(dto.getMarket(), dto.getMarket(), dto.getTrade_price());
                         stockRepository.save(newStock);
                     } else {
-                        // 3. 있으면? -> 가격만 업데이트하고 저장 (UPDATE)
-                        // (JPA의 Dirty Checking 기능으로 save 안 해도 되지만, 명시적으로 save 호출해도 무방)
                         stock.updatePrice(dto.getTrade_price());
-                        stockRepository.save(stock);
+                        // Dirty Checking으로 자동 저장됨
                     }
+                }, error -> {
+                    // [에러 처리] 로그를 찍어서 원인을 파악합니다.
+                    System.err.println("업비트 API 호출 중 에러 발생: " + error.getMessage());
                 });
     }
 
-    // 전체 주식 목록 조회
     public List<Stock> getStocks() {
-        // findAll()은 이미 List<Stock>을 반환합니다. 바로 리턴하세요!
         return stockRepository.findAll();
     }
 }
