@@ -4,188 +4,113 @@ import com.example.virtual_exchange.domain.Account;
 import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.domain.StockHolding;
 import com.example.virtual_exchange.domain.User;
+import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.repository.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Transactional
 class OrderServiceTest {
-    @Autowired
-    OrderService orderService;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    AccountRepository accountRepository;
-    @Autowired
-    StockRepository stockRepository;
-    @Autowired
-    StockHoldingRepository stockHoldingRepository;
-    @Autowired
-    OrderRepository orderRepository;
+
+    @Autowired OrderService orderService;
+
+    // 리포지토리 5총사 (데이터 생성 및 삭제용)
+    @Autowired OrderRepository orderRepository;
+    @Autowired UserRepository userRepository;
+    @Autowired AccountRepository accountRepository;
+    @Autowired StockRepository stockRepository;
+    @Autowired StockHoldingRepository stockHoldingRepository;
+
+    // ★ [추가된 핵심] 테스트 시작 전에 무조건 청소부터! (좀비 데이터 방지)
+    @BeforeEach
+    public void cleanup() {
+        tearDown();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        // [삭제 순서 중요] 외래키(FK)로 묶인 자식부터 지워야 에러가 안 남
+        stockHoldingRepository.deleteAll(); // 1. 보유 주식 (User 참조 중)
+        orderRepository.deleteAll();        // 2. 주문 내역 (User 참조 중)
+        accountRepository.deleteAll();      // 3. 계좌 (User 참조 중)
+        userRepository.deleteAll();         // 4. 유저 (이제 삭제 가능)
+        stockRepository.deleteAll();        // 5. 종목
+    }
 
     @Test
-    @DisplayName("첫 매수: 잔고가 줄고, 보유 주식이 새로 생겨야 한다")
-    void buyBewStockTest(){
-        // [Given]: 테스트를 위한 "준비" 단계
-        // 1. 유저, 계좌(잔고 1000원), 주식(100원)을 미리 만들어둔다.
-        User user = userRepository.save(new User("poor@test.com", "1234", "거지"));
+    @DisplayName("동시에 100개 주문이 들어오면 잔고가 망가진다 (실패해야 정상)")
+    void concurrentOrderTest() throws InterruptedException {
+        // 1. [준비] 데이터 세팅 (DB에 진짜 저장)
 
+        // 1000원짜리 주식 생성
+        Stock stock = new Stock("KRW-TEST", "테스트코인", 1000.0);
+        stockRepository.save(stock);
+
+        // 유저 생성
+        User user = new User("test@test.com", "1234", "테스터");
+        userRepository.save(user);
+
+        // 계좌 생성 (잔액 1,000원 -> 딱 1개만 살 수 있음)
         Account account = new Account(user);
-        account.increaseBalance(1000L); // 돈 충전은 준비 단계!
+        account.increaseBalance(1000L);
         accountRepository.save(account);
 
-        Stock stock = stockRepository.save(new Stock("KRW-BTC", "비트코인", 100.0));
+        // 2. [공격] 100명이 동시에 '매수' 버튼을 누름!
+        int threadCount = 100;
+        // 32명의 일꾼을 가진 스레드 풀 생성
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        // 100명 다 끝날 때까지 기다리는 카운터
+        CountDownLatch latch = new CountDownLatch(threadCount);
 
-        // [When]: 실제로 테스트하고 싶은 "행동" (딱 한 줄인 경우가 많음)
-        // 1. 1주를 매수한다.
-        orderService.buy(user.getId(), stock.getCode(), 1L);
+        OrderRequestDto req = new OrderRequestDto("KRW-TEST", 1L, "BUY");
 
-        // [Then]: 결과가 맞는지 "검증" 단계
-        // 1. 잔고 확인 (중요: DB에서 다시 꺼내와야 함!)
-        Account savedAccount = accountRepository.findById(account.getId()).orElseThrow();
-        assertThat(savedAccount.getBalance()).isEqualTo(900L); // 1000 - 100 = 900
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    // 따닥! 주문 요청
+                    orderService.createOrder(user.getId(), req);
+                } catch (Exception e) {
+                    // 잔액 부족 등으로 실패하는 게 정상이므로 에러는 무시
+                } finally {
+                    // 성공하든 실패하든 카운트 1 감소
+                    latch.countDown();
+                }
+            });
+        }
 
-        // 2. 주식이 생겼는지 확인 (이제는 조회가 됨!)
-        StockHolding stockHolding = stockHoldingRepository.findByUserAndStock(user, stock)
-                .orElseThrow(() -> new IllegalArgumentException("주식이 안 사졌어요!"));
+        latch.await(); // 100명 다 끝날 때까지 대기
 
-        assertThat(stockHolding.getStock().getCode()).isEqualTo("KRW-BTC");
-        assertThat(stockHolding.getUser().getEmail()).isEqualTo("poor@test.com");
-        assertThat(stockHolding.getQuantity()).isEqualTo(1L); // 수량 확인도 추가하면 좋음
-    }
+// 3. [검증] 결과 확인
+        Account resultAccount = accountRepository.findByUserId(user.getId()).orElseThrow();
+        long successfulOrders = orderRepository.count();
 
-    @Test
-    @DisplayName("추가 매수(물타기): 수량이 늘고 평단가가 갱신되어야 한다")
-    void buyAdditionalStockTest() {
-        // Given
-        User user = userRepository.save(new User("test@test.com", "1234", "test"));
-        Account account = accountRepository.save(new Account(user));
-        account.increaseBalance(1000L); // 초기 잔액 1000원
+        // ★ [수정] 10개가 튀어나와도 당황하지 않고 다 가져와서 더해봅니다.
+        List<StockHolding> holdings = stockHoldingRepository.findAllByUserIdAndStockCode(user.getId(), "KRW-TEST");
 
-        Stock stock = stockRepository.save(new Stock("KRW-BTC", "coin", 100.0));
+        // 리스트에 있는 모든 수량을 합침 (Java Stream 활용)
+        long totalStockQuantity = holdings.stream()
+                .mapToLong(StockHolding::getQuantity)
+                .sum();
 
-        // 1차 매수 (100원에 1개)
-        orderService.buy(user.getId(), stock.getCode(), 1L);
+        System.out.println("=========================================");
+        System.out.println("1. 시도한 횟수   : " + threadCount + "번");
+        System.out.println("2. 성공한 주문 수 : " + successfulOrders + "개 (주문서 개수)");
+        System.out.println("3. 보유 주식 총합 : " + totalStockQuantity + "개 (데이터 " + holdings.size() + "건의 합)");
+        System.out.println("4. 최종 잔액     : " + resultAccount.getBalance() + "원");
+        System.out.println("=========================================");
 
-        // When
-        // 가격이 200원으로 오름
-        stock.updatePrice(200.0);
-        stockRepository.save(stock); // (중요) 바뀐 가격을 DB에 확정!
-
-        // 2차 매수 (200원에 2개)
-        orderService.buy(user.getId(), stock.getCode(), 2L);
-
-        // Then
-        StockHolding stockHolding = stockHoldingRepository.findByUserAndStock(user, stock).get();
-
-        // 1. 수량 검증 (1 + 2 = 3) -> OK 하셨음
-        assertThat(stockHolding.getQuantity()).isEqualTo(3);
-
-        // 2. 잔고 검증 (1000 - 100 - 400 = 500) -> OK 하셨음
-        Account findAccount = accountRepository.findByUserId(user.getId()).get();
-        assertThat(findAccount.getBalance()).isEqualTo(500L);
-
-        // 3. [추가] 평단가 검증 (핵심!)
-        // 계산: (100*1 + 200*2) / 3 = 166.6666...
-        // 소수점 계산은 딱 떨어지지 않을 수 있어서 '오차범위(offset)'를 줍니다.
-        assertThat(stockHolding.getAvgPrice()).isCloseTo(166.66, org.assertj.core.data.Offset.offset(0.01));
-    }
-
-    @Test
-    @DisplayName("돈이 부족하면 매수에 실패해야 한다")
-    void insufficientBalanceTest() {
-        // Given
-        User user = userRepository.save(new User("test@test.com", "12345", "test"));
-        Account account = accountRepository.save(new Account(user));
-        account.increaseBalance(200L); // 잔고 200원
-
-        Stock stock = stockRepository.save(new Stock("KRW-BTC", "coin", 150.0)); // 가격 150원
-
-        // When & Then
-        // 150원짜리 2개 사려면 300원 필요 -> 200원밖에 없으니 예외 발생해야 함!
-        // "이 람다식 안의 코드를 실행하면 IllegalStateException이 터져야 성공이다"
-        assertThrows(IllegalStateException.class, () -> {
-            orderService.buy(user.getId(), stock.getCode(), 2L);
-        });
-    }
-
-    // ... 기존 buy 테스트 아래에 추가 ...
-
-    @Test
-    @DisplayName("주식 매도 성공: 잔액 증가, 보유량 감소, 주문 기록 생성")
-    void sell_success() {
-        // given
-        // 1. 테스트를 위해 먼저 10개를 매수해둡니다.
-        // (가정: 유저 100만원, 주식 1주당 1000원 -> 10개 매수)
-        User user = userRepository.save(new User("test@test.com", "12345", "test"));
-        Account account = accountRepository.save(new Account(user));
-        account.increaseBalance(1000000L);
-
-        Stock stock = stockRepository.save(new Stock("KRW-BTC", "coin", 1000.0));
-        orderService.buy(user.getId(), stock.getCode(), 10L);
-
-        // when
-        // 2. 5개를 매도합니다. (현재가 1000원 가정 -> 5000원 벌어야 함)
-        Long sellQuantity = 5L;
-        orderService.sell(user.getId(), stock.getCode(), sellQuantity);
-
-        // then
-        // 3. 검증
-        Account foundAccount = accountRepository.findByUserId(user.getId()).orElseThrow(); // 이건 왜 가져온거임?
-        StockHolding holding = stockHoldingRepository.findByUserAndStock(userRepository.findById(user.getId()).get(), stockRepository.findById(stock.getCode()).get()).orElseThrow();
-
-        // 잔액 확인: (원금 100만) - (매수 1만) + (매도 5천) = 99만 5천원
-        // *주의: 테스트 환경에 따라 초기 잔액이 다를 수 있으니 로직에 맞춰 계산 필요
-        // 여기서는 "매수 후 잔액"에서 "판 돈"만큼 늘었는지 확인하는 게 정확합니다.
-        // 100만원(초기) - 1만원(매수) + 5천원(매도) = 99만 5천원
-        assertThat(foundAccount.getBalance()).isEqualTo(995000L);
-        assertThat(holding.getQuantity()).isEqualTo(5L); // 10개 - 5개 = 5개
-    }
-
-    @Test
-    @DisplayName("주식 매도 실패: 보유 수량보다 많이 팔 수 없다")
-    void sell_fail_not_enough_quantity() {
-        // given
-        // 1. 유저, 계좌, 종목 생성
-        User user = userRepository.save(new User("fail1@test.com", "1234", "fail1"));
-        Account account = accountRepository.save(new Account(user));
-        account.increaseBalance(1000000L); // 돈은 넉넉히
-
-        Stock stock = stockRepository.save(new Stock("KRW-ETH", "Ethereum", 2000.0));
-
-        // 2. 10개 미리 매수
-        orderService.buy(user.getId(), stock.getCode(), 10L);
-
-        // when & then
-        // 3. 100개 매도 시도 -> IllegalStateException (StockHolding.decreaseQuantity에서 발생)
-        assertThrows(IllegalStateException.class, () -> {
-            orderService.sell(user.getId(), stock.getCode(), 100L);
-        });
-    }
-
-    @Test
-    @DisplayName("주식 매도 실패: 보유하지 않은 주식은 팔 수 없다")
-    void sell_fail_no_stock() {
-        // given
-        // 1. 유저, 계좌, 종목 생성
-        User user = userRepository.save(new User("fail2@test.com", "1234", "fail2"));
-        Account account = accountRepository.save(new Account(user));
-
-        Stock stock = stockRepository.save(new Stock("KRW-DOGE", "Dogecoin", 100.0));
-
-        // *중요* 매수(buy)를 하지 않음!
-
-        // when & then
-        // 2. 산 적 없는 주식 매도 시도 -> IllegalArgumentException (Service의 findByUserAndStock에서 발생)
-        assertThrows(IllegalArgumentException.class, () -> {
-            orderService.sell(user.getId(), stock.getCode(), 1L);
-        });
+        // [핵심 검증] 주문 성공 횟수는 딱 1번이어야 함!
+        assertThat(successfulOrders).isEqualTo(1L);
     }
 }

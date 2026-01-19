@@ -1,4 +1,4 @@
-package com.example.virtual_exchange.config;
+package com.example.virtual_exchange.config.auth;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

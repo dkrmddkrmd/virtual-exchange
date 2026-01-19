@@ -42,7 +42,8 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
         Stock stock = stockRepository.findById(code)
                 .orElseThrow(() -> new IllegalArgumentException("없는 종목입니다."));
-        Account account = accountRepository.findByUserId(userId)
+        // ★ [수정 코드] 락을 걸고 계좌를 가져옵니다! (여기서 줄 서기가 발생함)
+        Account account = accountRepository.findByUserIdWithLock(userId)
                 .orElseThrow(() -> new IllegalArgumentException("계좌가 없습니다."));
 
         long totalPrice = (long) (stock.getCurrentPrice() * quantity);
@@ -73,7 +74,8 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
         Stock stock = stockRepository.findById(code)
                 .orElseThrow(() -> new IllegalArgumentException("없는 종목입니다."));
-        Account account = accountRepository.findByUserId(userId)
+        // ★ [수정 코드] 락을 걸고 계좌를 가져옵니다! (여기서 줄 서기가 발생함)
+        Account account = accountRepository.findByUserIdWithLock(userId)
                 .orElseThrow(() -> new IllegalArgumentException("계좌가 없습니다."));
 
         StockHolding stockHolding = stockHoldingRepository.findByUserAndStock(user, stock)
