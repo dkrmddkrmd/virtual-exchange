@@ -5,6 +5,7 @@ import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.domain.StockHolding;
 import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.dto.OrderRequestDto;
+import com.example.virtual_exchange.facade.RedissonLockStockFacade;
 import com.example.virtual_exchange.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 class OrderServiceTest {
 
-    @Autowired OrderService orderService;
+    // [변경 1] Service 대신 Facade를 주입받음
+    @Autowired
+    RedissonLockStockFacade redissonLockStockFacade;
+    //@Autowired OrderService orderService;
 
     // 리포지토리 5총사 (데이터 생성 및 삭제용)
     @Autowired OrderRepository orderRepository;
@@ -49,7 +53,7 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("동시에 100개 주문이 들어오면 잔고가 망가진다 (실패해야 정상)")
+    @DisplayName("Redis 분산 락 적용 - 100명 동시 주문")
     void concurrentOrderTest() throws InterruptedException {
         // 1. [준비] 데이터 세팅 (DB에 진짜 저장)
 
@@ -78,8 +82,9 @@ class OrderServiceTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    // 따닥! 주문 요청
-                    orderService.createOrder(user.getId(), req);
+                    // [변경 2] orderService 대신 facade를 호출!
+                    // 이제 Redis 경비원을 거쳐서 들어갑니다.
+                    redissonLockStockFacade.createOrder(user.getId(), req);
                 } catch (Exception e) {
                     // 잔액 부족 등으로 실패하는 게 정상이므로 에러는 무시
                 } finally {

@@ -42,8 +42,9 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
         Stock stock = stockRepository.findById(code)
                 .orElseThrow(() -> new IllegalArgumentException("없는 종목입니다."));
-        // ★ [수정 코드] 락을 걸고 계좌를 가져옵니다! (여기서 줄 서기가 발생함)
-        Account account = accountRepository.findByUserIdWithLock(userId)
+        // ★ [수정] 다시 락 없는 일반 메서드로 변경!
+        // (Redis가 앞에서 막아줄 거니까, DB 락은 풉니다)
+        Account account = accountRepository.findByUserId(userId) // WithLock 아님!
                 .orElseThrow(() -> new IllegalArgumentException("계좌가 없습니다."));
 
         long totalPrice = (long) (stock.getCurrentPrice() * quantity);
@@ -74,8 +75,9 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
         Stock stock = stockRepository.findById(code)
                 .orElseThrow(() -> new IllegalArgumentException("없는 종목입니다."));
-        // ★ [수정 코드] 락을 걸고 계좌를 가져옵니다! (여기서 줄 서기가 발생함)
-        Account account = accountRepository.findByUserIdWithLock(userId)
+        // ★ [수정] 다시 락 없는 일반 메서드로 변경!
+        // (Redis가 앞에서 막아줄 거니까, DB 락은 풉니다)
+        Account account = accountRepository.findByUserId(userId) // WithLock 아님!
                 .orElseThrow(() -> new IllegalArgumentException("계좌가 없습니다."));
 
         StockHolding stockHolding = stockHoldingRepository.findByUserAndStock(user, stock)
