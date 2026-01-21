@@ -3,6 +3,7 @@ package com.example.virtual_exchange.controller.api;
 import com.example.virtual_exchange.config.auth.PrincipalDetails;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
+import com.example.virtual_exchange.facade.RedissonLockStockFacade;
 import com.example.virtual_exchange.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final RedissonLockStockFacade redissonLockStockFacade;
 
     // 주문 생성
     @PostMapping
@@ -29,7 +31,7 @@ public class OrderController {
         Long userId = principalDetails.getUser().getId();
 
         // 3. 서비스에 ID와 주문 정보를 따로 넘겨줌 (서비스 메서드 수정 필요!)
-        orderService.createOrder(userId, requestDto);
+        redissonLockStockFacade.createOrder(userId, requestDto);
 
         return ResponseEntity.ok("주문 접수 완료");
     }

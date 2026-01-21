@@ -1,9 +1,6 @@
 package com.example.virtual_exchange.service;
 
-import com.example.virtual_exchange.domain.Account;
-import com.example.virtual_exchange.domain.Stock;
-import com.example.virtual_exchange.domain.StockHolding;
-import com.example.virtual_exchange.domain.User;
+import com.example.virtual_exchange.domain.*;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.facade.RedissonLockStockFacade;
 import com.example.virtual_exchange.repository.*;
@@ -35,6 +32,8 @@ class OrderServiceTest {
     @Autowired AccountRepository accountRepository;
     @Autowired StockRepository stockRepository;
     @Autowired StockHoldingRepository stockHoldingRepository;
+    @Autowired
+    private OrderService orderService;
 
     // ★ [추가된 핵심] 테스트 시작 전에 무조건 청소부터! (좀비 데이터 방지)
     @BeforeEach
@@ -117,5 +116,36 @@ class OrderServiceTest {
 
         // [핵심 검증] 주문 성공 횟수는 딱 1번이어야 함!
         assertThat(successfulOrders).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("N+1 문제 확인")
+    void myTest(){
+        //given
+        // 1000원짜리 주식 생성
+        Stock stock = new Stock("KRW-TEST", "테스트코인", 1000.0);
+        stockRepository.save(stock);
+
+        // 유저 생성
+        User user = new User("test@test.com", "1234", "테스터");
+        userRepository.save(user);
+
+        // 계좌 생성
+        Account account = new Account(user);
+        account.increaseBalance(10000L);
+        accountRepository.save(account);
+
+        //Dto 생성
+        OrderRequestDto buyReq = new OrderRequestDto("KRW-TEST", 1L, "BUY");
+        OrderRequestDto sellReq = new OrderRequestDto("KRW-TEST", 1L, "SELL");
+
+        //when
+        redissonLockStockFacade.createOrder(user.getId(), buyReq);
+        redissonLockStockFacade.createOrder(user.getId(), buyReq);
+        redissonLockStockFacade.createOrder(user.getId(), sellReq);
+        redissonLockStockFacade.createOrder(user.getId(), buyReq);
+        redissonLockStockFacade.createOrder(user.getId(), sellReq);
+
+        orderService.getOrderLogs(user.getId());
     }
 }

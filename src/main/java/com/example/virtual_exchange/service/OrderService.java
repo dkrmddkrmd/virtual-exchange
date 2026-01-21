@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -100,5 +101,23 @@ public class OrderService {
         return orderRepository.findAllByUserIdWithStock(userId).stream()
                 .map(OrderHistoryDto::new)
                 .toList();
+    }
+
+    // OrderService.java
+    @Transactional(readOnly = true)
+    public void getOrderLogs(Long userId) {
+        // 1. 주문 목록 조회 (여기서는 쿼리 1방만 나감)
+        List<Order> orders = orderRepository.findAllByUserId(userId);
+
+        System.out.println("=== 🚨 [검증 시작] N+1 발생 구간 진입 ===");
+
+        // 2. 반복문 돌면서 '지연 로딩' 강제 발생!
+        for (Order order : orders) {
+            // order.getStock().getName()을 호출하는 순간,
+            // 가짜(Proxy) 종목 객체가 "어? 진짜 이름 필요하네?" 하고 DB를 찌릅니다.
+            System.out.println("👉 주문ID: " + order.getId() + ", 종목명: " + order.getStock().getName());
+        }
+
+        System.out.println("=== 🚨 [검증 끝] N+1 발생 확인 완료 ===");
     }
 }
