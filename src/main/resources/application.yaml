@@ -19,6 +19,17 @@ spring:
       hibernate:
         format_sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092 # 카프카 주소 (도커가 9092로 열어줌)
+    consumer:
+      group-id: stock-group # 우리 서비스 이름표 (컨슈머 그룹)
+      auto-offset-reset: latest # 가장 최근 메시지부터 읽겠다
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 server:
   servlet:
     session:

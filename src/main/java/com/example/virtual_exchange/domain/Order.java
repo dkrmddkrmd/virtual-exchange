@@ -8,7 +8,11 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "orders") // 주의: 'ORDER'는 DB 예약어라 에러남! 'orders'로 변경 필수
+// 1. 테이블 이름 명시
+// 2. indexes 옵션으로 "복합 인덱스" 정의
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_user_date", columnList = "user_id, order_date DESC")
+})
 public class Order {
 
     @Id

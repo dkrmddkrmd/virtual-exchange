@@ -119,33 +119,31 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("N+1 문제 확인")
-    void myTest(){
-        //given
-        // 1000원짜리 주식 생성
-        Stock stock = new Stock("KRW-TEST", "테스트코인", 1000.0);
-        stockRepository.save(stock);
+    @DisplayName("N+1 문제 진짜 확인 (서로 다른 코인 주문)")
+    void myTest_Real_N_Plus_1() {
+        // 1. 서로 다른 코인 3개 생성 (캐시 회피용)
+        stockRepository.save(new Stock("KRW-BTC", "비트코인", 50000.0));
+        stockRepository.save(new Stock("KRW-ETH", "이더리움", 3000.0));
+        stockRepository.save(new Stock("KRW-DOGE", "도지코인", 100.0));
 
-        // 유저 생성
+        // 2. 유저 & 계좌 생성
         User user = new User("test@test.com", "1234", "테스터");
         userRepository.save(user);
-
-        // 계좌 생성
         Account account = new Account(user);
-        account.increaseBalance(10000L);
+        account.increaseBalance(1000000L); // 돈 넉넉히
         accountRepository.save(account);
 
-        //Dto 생성
-        OrderRequestDto buyReq = new OrderRequestDto("KRW-TEST", 1L, "BUY");
-        OrderRequestDto sellReq = new OrderRequestDto("KRW-TEST", 1L, "SELL");
+        // 3. 서로 다른 코인 주문! (BTC, ETH, DOGE)
+        // Facade를 통해 락을 걸고 주문합니다.
+        redissonLockStockFacade.createOrder(user.getId(), new OrderRequestDto("KRW-BTC", 1L, "BUY"));
+        redissonLockStockFacade.createOrder(user.getId(), new OrderRequestDto("KRW-ETH", 1L, "BUY"));
+        redissonLockStockFacade.createOrder(user.getId(), new OrderRequestDto("KRW-DOGE", 1L, "BUY"));
 
-        //when
-        redissonLockStockFacade.createOrder(user.getId(), buyReq);
-        redissonLockStockFacade.createOrder(user.getId(), buyReq);
-        redissonLockStockFacade.createOrder(user.getId(), sellReq);
-        redissonLockStockFacade.createOrder(user.getId(), buyReq);
-        redissonLockStockFacade.createOrder(user.getId(), sellReq);
-
+        // 4. 로그 확인 (여기서 쿼리가 '주문 수'만큼 폭발해야 함)
+        System.out.println("=====================================");
+        System.out.println("▼ N+1 테스트 시작 (쿼리가 계속 나가야 함) ▼");
         orderService.getOrderLogs(user.getId());
+        System.out.println("▲ N+1 테스트 종료 ▲");
+        System.out.println("=====================================");
     }
 }

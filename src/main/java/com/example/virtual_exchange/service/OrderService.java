@@ -107,7 +107,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public void getOrderLogs(Long userId) {
         // 1. 주문 목록 조회 (여기서는 쿼리 1방만 나감)
-        List<Order> orders = orderRepository.findAllByUserId(userId);
+        List<Order> orders = orderRepository.findAllByUserIdWithStock(userId);
 
         System.out.println("=== 🚨 [검증 시작] N+1 발생 구간 진입 ===");
 

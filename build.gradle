@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6' // 뷰에서 로그인 여부 확인용
     implementation 'org.redisson:redisson-spring-boot-starter:3.27.0' // Redis & Redisson (분산 락을 위한 핵심 라이브러리)
     implementation 'org.springframework.boot:spring-boot-starter-cache' // 캐싱
+    implementation 'org.springframework.kafka:spring-kafka' // Kafka 추가
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
