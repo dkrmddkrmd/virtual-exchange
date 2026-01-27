@@ -21,6 +21,7 @@ public class OrderService {
     private final AccountRepository accountRepository;
     private final StockHoldingRepository stockHoldingRepository;
     private final OrderRepository orderRepository;
+    private final KafkaProducerService kafkaProducerService;
 
     // [New] 외부에서 들어오는 유일한 창구
     public void createOrder(Long userId, OrderRequestDto dto) {
@@ -68,6 +69,7 @@ public class OrderService {
 
         Order order = new Order(user, stock, OrderType.BUY, stock.getCurrentPrice(), quantity);
         orderRepository.save(order);
+        kafkaProducerService.send("stock_order", "Order ID: " + order.getId() + " Created!");
     }
 
     // 내부 로직 (private 추천)
@@ -94,6 +96,7 @@ public class OrderService {
 
         Order order = new Order(user, stock, OrderType.SELL, stock.getCurrentPrice(), quantity);
         orderRepository.save(order);
+        kafkaProducerService.send("stock_order", "Order ID: " + order.getId() + " Created!");
     }
 
     public List<OrderHistoryDto> getOrderLists(Long userId){
@@ -104,20 +107,20 @@ public class OrderService {
     }
 
     // OrderService.java
-    @Transactional(readOnly = true)
-    public void getOrderLogs(Long userId) {
-        // 1. 주문 목록 조회 (여기서는 쿼리 1방만 나감)
-        List<Order> orders = orderRepository.findAllByUserIdWithStock(userId);
-
-        System.out.println("=== 🚨 [검증 시작] N+1 발생 구간 진입 ===");
-
-        // 2. 반복문 돌면서 '지연 로딩' 강제 발생!
-        for (Order order : orders) {
-            // order.getStock().getName()을 호출하는 순간,
-            // 가짜(Proxy) 종목 객체가 "어? 진짜 이름 필요하네?" 하고 DB를 찌릅니다.
-            System.out.println("👉 주문ID: " + order.getId() + ", 종목명: " + order.getStock().getName());
-        }
-
-        System.out.println("=== 🚨 [검증 끝] N+1 발생 확인 완료 ===");
-    }
+//    @Transactional(readOnly = true)
+//    public void getOrderLogs(Long userId) {
+//        // 1. 주문 목록 조회 (여기서는 쿼리 1방만 나감)
+//        List<Order> orders = orderRepository.findAllByUserIdWithStock(userId);
+//
+//        System.out.println("=== 🚨 [검증 시작] N+1 발생 구간 진입 ===");
+//
+//        // 2. 반복문 돌면서 '지연 로딩' 강제 발생!
+//        for (Order order : orders) {
+//            // order.getStock().getName()을 호출하는 순간,
+//            // 가짜(Proxy) 종목 객체가 "어? 진짜 이름 필요하네?" 하고 DB를 찌릅니다.
+//            System.out.println("👉 주문ID: " + order.getId() + ", 종목명: " + order.getStock().getName());
+//        }
+//
+//        System.out.println("=== 🚨 [검증 끝] N+1 발생 확인 완료 ===");
+//    }
 }

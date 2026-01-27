@@ -18,8 +18,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // 1. 개발 단계에서는 CSRF 잠깐 꺼두기 (이거 때문에 403 에러 많이 남)
-                .csrf(AbstractHttpConfigurer::disable)
-
+                //.csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable()) // jmeter 테스트용
                 // 2. URL 별 권한 관리
                 .authorizeHttpRequests(auth -> auth
                         // 정적 리소스 (css, js, images) 무조건 허용! -> 이거 안 하면 로그인 페이지 깨짐
