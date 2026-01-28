@@ -23,8 +23,11 @@ public class StockOrderProducer {
         try {
             String jsonMessage = objectMapper.writeValueAsString(dto);
 
-            kafkaTemplate.send(TOPIC, jsonMessage);
-            log.info("📤 [StockOrderProducer] 주문 전송 완료: {}", jsonMessage);
+            // [수정 후] userId를 Key로 설정 -> 같은 유저는 같은 파티션으로 -> 순서 보장!
+            String key = String.valueOf(dto.getUserId());
+            kafkaTemplate.send(TOPIC, key, jsonMessage);
+
+            log.info("📤 [Producer] 주문 전송 (Key: {}): {}", key, jsonMessage);
 
         } catch (JsonProcessingException e) {
             log.error("JSON 변환 실패", e);

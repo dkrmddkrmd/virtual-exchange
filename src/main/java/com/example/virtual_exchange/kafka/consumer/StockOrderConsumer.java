@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +26,21 @@ public class StockOrderConsumer {
 
     // 카프카 리스너는 DB 트랜잭션의 시작점이 됩니다.
     @Transactional
-    @KafkaListener(topics = "stock_order", groupId = "stock-group")
-    public void consumeOrder(String messageJson) {
+    @KafkaListener(topics = "stock_order", groupId = "stock-group-v2", concurrency = "3")
+    public void consumeOrder(String messageJson, @Header(KafkaHeaders.RECEIVED_PARTITION) int partition) {
         try {
             OrderMessageDto message = objectMapper.readValue(messageJson, OrderMessageDto.class);
-            log.info("Consumer: 주문 수신 - {}", message);
+            // ★ 로그 수정: 스레드 이름 + 파티션 번호까지 같이 출력
+            log.info("👨‍🍳 [Consumer: {}] 가 [Partition: {}번] 에서 주문 처리 중! - User({})",
+                    Thread.currentThread().getName(),
+                    partition,
+                    message.getUserId());
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
             // String 비교 (대소문자 무시)
             if ("BUY".equalsIgnoreCase(message.getOrderType())) {

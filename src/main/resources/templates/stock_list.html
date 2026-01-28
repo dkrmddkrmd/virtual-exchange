@@ -72,8 +72,11 @@
             .then(async response => {
                 if (response.ok) {
                     const msg = await response.text();
-                    alert(msg || "주문 성공!");
-                    window.location.reload();
+                    alert(msg || "주문 접수 완료");
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
                 } else {
                     const errorMsg = await response.text();
                     alert("주문 실패: " + errorMsg);
