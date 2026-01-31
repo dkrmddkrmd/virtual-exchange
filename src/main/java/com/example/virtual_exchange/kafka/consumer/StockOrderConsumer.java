@@ -26,7 +26,7 @@ public class StockOrderConsumer {
 
     // 카프카 리스너는 DB 트랜잭션의 시작점이 됩니다.
     @Transactional
-    @KafkaListener(topics = "stock_order", groupId = "stock-group-v2", concurrency = "3")
+    @KafkaListener(topics = "stock_order", groupId = "stock-group-v3", concurrency = "3")
     public void consumeOrder(String messageJson, @Header(KafkaHeaders.RECEIVED_PARTITION) int partition) {
         try {
             OrderMessageDto message = objectMapper.readValue(messageJson, OrderMessageDto.class);
@@ -35,12 +35,6 @@ public class StockOrderConsumer {
                     Thread.currentThread().getName(),
                     partition,
                     message.getUserId());
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
 
             // String 비교 (대소문자 무시)
             if ("BUY".equalsIgnoreCase(message.getOrderType())) {
