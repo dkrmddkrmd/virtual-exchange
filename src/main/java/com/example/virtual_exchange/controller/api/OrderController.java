@@ -14,15 +14,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; // 2. 어노테이션 import
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/orders")
 public class OrderController {
 
     private final OrderService orderService;
-    private final RedissonLockStockFacade redissonLockStockFacade;
+    //private final RedissonLockStockFacade redissonLockStockFacade;
 
     // 주문 생성
     @PostMapping
@@ -34,7 +32,11 @@ public class OrderController {
         Long userId = principalDetails.getUser().getId();
 
         // 3. 서비스에 ID와 주문 정보를 따로 넘겨줌 (서비스 메서드 수정 필요!)
-        redissonLockStockFacade.createOrder(userId, requestDto);
+        //redissonLockStockFacade.createOrder(userId, requestDto);
+
+        // Facade 대신 Service 호출
+        // Kafka 파티셔닝(Key=userId) 덕분에 동시성 문제 없이 순서대로 처리됨
+        orderService.createOrder(userId, requestDto);
 
         return ResponseEntity.ok("주문 접수 완료");
     }

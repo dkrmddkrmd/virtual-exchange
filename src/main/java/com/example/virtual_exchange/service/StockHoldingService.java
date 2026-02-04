@@ -60,16 +60,14 @@ public class StockHoldingService {
                 .map(StockHoldingDto::new) // 생성자 참조를 통해 변환
                 .toList(); // java 16+ (그 이하는 collect(Collectors.toList())
 
-        // 5. 반환 (Builder 안 쓰고 생성자로 하는 법)
-        // DTO 클래스 위에 @AllArgsConstructor가 있어야 합니다.
-        return new MyAssetDto(
-                totalAssetAmount,
-                balance,
-                totalPurchaseAmount,
-                totalEvaluationAmount,
-                totalProfitLoss,
-                returnRate,
-                holdingDtos
-        );
+        return MyAssetDto.builder()
+                .totalAssetAmount(totalAssetAmount)
+                .balance(balance)
+                .totalPurchaseAmount(totalPurchaseAmount) // 이름이 명시되니 순서 헷갈릴 일 없음!
+                .totalEvaluationAmount(totalEvaluationAmount)
+                .totalProfitLoss(totalProfitLoss)
+                .returnRate(returnRate)
+                .holdingList(holdingDtos) // DTO 필드명 매핑
+                .build();
     }
 }

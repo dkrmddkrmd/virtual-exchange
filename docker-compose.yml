@@ -1,20 +1,25 @@
 version: '3'
 services:
-  # 1. 주키퍼 (Zookeeper): 카프카의 관리자/반장 역할
+  # 1. 주키퍼 (Zookeeper)
   zookeeper:
     image: wurstmeister/zookeeper
     container_name: zookeeper
     ports:
       - "2181:2181"
 
-  # 2. 카프카 (Kafka): 메시지를 주고받는 핵심 서버
+  # 2. 카프카 (Kafka)
   kafka:
     image: wurstmeister/kafka
     container_name: kafka
     ports:
       - "9092:9092"
     environment:
+      # [수정] 호스트 이름은 그대로 유지
       KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+
+      # [추가] ★ 이 줄이 없어서 에러가 난 겁니다! 포트를 숫자로 딱 박아줍니다.
+      KAFKA_ADVERTISED_PORT: 9092
+
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

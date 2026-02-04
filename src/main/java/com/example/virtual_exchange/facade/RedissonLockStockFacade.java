@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Slf4j
 public class RedissonLockStockFacade {
+    // 지금 쓰이진 않지만 일단 공부용
 
     private final RedissonClient redissonClient;
     private final OrderService orderService;

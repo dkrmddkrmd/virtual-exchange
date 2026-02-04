@@ -24,29 +24,25 @@ public class StockOrderConsumer {
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;
 
-    // 카프카 리스너는 DB 트랜잭션의 시작점이 됩니다.
+    // [트랜잭션 시작점]
     @Transactional
     @KafkaListener(topics = "stock_order", groupId = "stock-group-v3", concurrency = "3")
     public void consumeOrder(String messageJson, @Header(KafkaHeaders.RECEIVED_PARTITION) int partition) {
         try {
             OrderMessageDto message = objectMapper.readValue(messageJson, OrderMessageDto.class);
-            // ★ 로그 수정: 스레드 이름 + 파티션 번호까지 같이 출력
-            log.info("👨‍🍳 [Consumer: {}] 가 [Partition: {}번] 에서 주문 처리 중! - User({})",
-                    Thread.currentThread().getName(),
-                    partition,
-                    message.getUserId());
+            log.info("🔥 [Consumer] 처리 시작 (Partition: {}, User: {})", partition, message.getUserId());
 
-            // String 비교 (대소문자 무시)
             if ("BUY".equalsIgnoreCase(message.getOrderType())) {
                 buy(message.getUserId(), message.getCode(), message.getQuantity());
             } else if ("SELL".equalsIgnoreCase(message.getOrderType())) {
                 sell(message.getUserId(), message.getCode(), message.getQuantity());
             } else {
-                log.warn("잘못된 주문 타입입니다: {}", message.getOrderType());
+                log.warn("⚠️ 잘못된 주문 타입: {}", message.getOrderType());
             }
 
         } catch (Exception e) {
-            log.error("Consumer 처리 에러", e);
+            // [중요] 실제 운영에선 여기서 DLQ(Dead Letter Queue)로 보내거나 알림을 줘야 함
+            log.error("❌ [Consumer] 주문 처리 실패", e);
         }
     }
 
