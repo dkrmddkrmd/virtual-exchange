@@ -12,7 +12,7 @@ class StockServiceTest {
 
     @Test
     void getPriceTest() throws InterruptedException {
-        stockService.getStockPrice();
+        stockService.fetchAndUpdateStockPrices();
 
         // 비동기 통신이라 결과 올 때까지 3초만 기다려줌 (테스트라서 필요)
         Thread.sleep(3000);

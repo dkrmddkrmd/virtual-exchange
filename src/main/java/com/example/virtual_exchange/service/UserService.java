@@ -18,23 +18,22 @@ public class UserService {
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 1. 회원가입
-    @Transactional // 여기는 데이터를 쓰니까 readOnly = false (기본값)
+    // 회원가입 (쓰기 작업이므로 readOnly = false)
+    @Transactional
     public Long join(String email, String name, String password) {
 
-        // A. 중복 검사: 이미 있는 이메일인지 확인
-        // (Optional을 사용해서 값이 있는지 확인)
-        if (userRepository.findByEmail(email).isPresent()) {
+        // A. 중복 검사: existsByEmail 사용 추천 (쿼리가 가벼움)
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalStateException("이미 존재하는 회원입니다.");
         }
 
+        // B. 비밀번호 암호화 및 유저 저장
         String encodedPassword = passwordEncoder.encode(password);
-
-        // B. 회원 저장: 입력받은 정보로 User 객체 생성 후 저장
         User user = new User(email, encodedPassword, name);
-        userRepository.save(user); // 이때 DB에 저장되고 ID가 생김
+        userRepository.save(user);
 
-        // C. 계좌 생성: 가입한 유저의 계좌를 자동 생성 (초기 잔액 0원)
+        // C. 계좌 생성 (초기 잔액 0원)
+        // [Tip] Account 생성자 안에서 user와의 연관관계 편의 메서드가 있다면 더 좋음
         Account account = new Account(user);
         accountRepository.save(account);
 

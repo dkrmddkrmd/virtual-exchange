@@ -30,18 +30,18 @@ public class RedissonLockStockFacade {
             boolean available = lock.tryLock(10, 1, TimeUnit.SECONDS);
 
             if (!available) {
-                log.info("락 획득 실패");
-                return;
+                log.warn("[Lock 실패] 유저 {} 락 획득 실패 - 트래픽 과부하", userId);
+                throw new IllegalStateException("현재 주문량이 많아 처리가 지연되고 있습니다.");
             }
 
             // 3. ★ 진짜 비즈니스 로직 실행 (주문)
             orderService.createOrder(userId, requestDto);
 
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            log.error("[Lock 에러] 유저 {} 락 획득 중 인터럽트 발생", userId, e);
+            Thread.currentThread().interrupt(); // 스레드 상태 복구
+            throw new IllegalStateException("서버 에러가 발생했습니다.");
         } finally {
-            // 4. 락 해제 (무조건 실행)
-            // 내가 락을 잡고 있을 때만 해제해야 함
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
             }

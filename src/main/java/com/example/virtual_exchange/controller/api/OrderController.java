@@ -7,6 +7,9 @@ import com.example.virtual_exchange.facade.RedissonLockStockFacade;
 import com.example.virtual_exchange.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; // 2. 어노테이션 import
 import org.springframework.web.bind.annotation.*;
@@ -21,50 +24,35 @@ public class OrderController {
     private final OrderService orderService;
     private final RedissonLockStockFacade redissonLockStockFacade;
 
-//    // 주문 생성
-//    @PostMapping
-//    public ResponseEntity<String> createOrder(
-//            @AuthenticationPrincipal PrincipalDetails principalDetails, // 1. 인증 정보 받기
-//            @RequestBody @Valid OrderRequestDto requestDto) {
-//
-//        // 2. 세션에서 로그인한 사람의 ID 꺼내기
-//        Long userId = principalDetails.getUser().getId();
-//
-//        // 3. 서비스에 ID와 주문 정보를 따로 넘겨줌 (서비스 메서드 수정 필요!)
-//        redissonLockStockFacade.createOrder(userId, requestDto);
-//
-//        return ResponseEntity.ok("주문 접수 완료");
-//    }
-
     // 주문 생성
     @PostMapping
     public ResponseEntity<String> createOrder(
-            // @AuthenticationPrincipal PrincipalDetails principalDetails, // [테스트용 주석] JMeter는 로그인 정보가 없으므로 막아둠
+            @AuthenticationPrincipal PrincipalDetails principalDetails, // 1. 인증 정보 받기
             @RequestBody @Valid OrderRequestDto requestDto) {
 
-        // [테스트용 변경] 세션 대신, 요청 데이터(Body)에 담긴 userId를 사용
-        Long userId = requestDto.getUserId();
+        // 2. 세션에서 로그인한 사람의 ID 꺼내기
+        Long userId = principalDetails.getUser().getId();
 
-        // [기존 코드 주석]
-        // Long userId = principalDetails.getUser().getId();
-
-        // 3. 서비스에 ID와 주문 정보를 따로 넘겨줌 (기존 로직 유지)
+        // 3. 서비스에 ID와 주문 정보를 따로 넘겨줌 (서비스 메서드 수정 필요!)
         redissonLockStockFacade.createOrder(userId, requestDto);
 
         return ResponseEntity.ok("주문 접수 완료");
     }
 
-    // 주문 목록 조회
-    @GetMapping("/list")
-    // [변경 전] @RequestParam Long userId
-    // [변경 후] @AuthenticationPrincipal PrincipalDetails principalDetails
-    public ResponseEntity<List<OrderHistoryDto>> getOrderLists(@AuthenticationPrincipal PrincipalDetails principalDetails){
+    // 주문 목록 조회 (페이징 추가)
+    // 요청 예시: /api/orders/list?page=0&size=10 (0번 페이지, 10개씩)
+    @GetMapping("/list") // URL 유지
+    public ResponseEntity<Page<OrderHistoryDto>> getOrderLists(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
 
-        // 3. 세션 정보(principalDetails)에서 로그인한 회원의 ID를 꺼냅니다.
+            // [추가] 페이징 처리 자동 매핑 객체
+            // @PageableDefault(size = 10): 안 보내면 기본 10개씩 가져옴
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
         Long userId = principalDetails.getUser().getId();
 
-        // 서비스 호출 (기존과 동일)
-        List<OrderHistoryDto> orderList = orderService.getOrderLists(userId);
+        // 서비스에 pageable 전달
+        Page<OrderHistoryDto> orderList = orderService.getOrderLists(userId, pageable);
 
         return ResponseEntity.ok(orderList);
     }

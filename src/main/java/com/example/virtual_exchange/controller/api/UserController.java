@@ -1,6 +1,6 @@
 package com.example.virtual_exchange.controller.api;
 
-import com.example.virtual_exchange.dto.MemberSignupDto;
+import com.example.virtual_exchange.dto.UserSignupDto;
 import com.example.virtual_exchange.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -8,20 +8,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class MemberController {
+@RequestMapping("/api")
+public class UserController {
     private final UserService userService;
 
-    @PostMapping("/api/signup")
-    public ResponseEntity<String> signup(@RequestBody @Valid MemberSignupDto dto) {
-        try {
-            userService.join(dto.getEmail(), dto.getName(), dto.getPassword());
-            return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공!"); // 201 Created 반환
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody @Valid UserSignupDto dto) {
+        // try-catch 제거 -> 에러 발생 시 GlobalExceptionHandler가 낚아채서 처리함
+        userService.join(dto.getEmail(), dto.getName(), dto.getPassword());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공!");
     }
 }

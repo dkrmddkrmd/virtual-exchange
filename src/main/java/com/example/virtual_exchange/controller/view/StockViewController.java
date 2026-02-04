@@ -15,7 +15,7 @@ public class StockViewController {
     public String stockPage(Model model) {
         // 1. 서비스한테 주식 목록 다 가져오라고 시킴
         // 2. 가져온 목록을 "stocks"라는 이름으로 화면(Model)에 실어 보냄
-        model.addAttribute("stocks", stockService.getStocks());
+        model.addAttribute("stocks", stockService.getAllStocks());
 
         // 3. "stock_list"라는 이름의 HTML 파일을 찾아서 보여줘라!
         return "stock_list";

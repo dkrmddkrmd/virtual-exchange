@@ -1,8 +1,9 @@
 package com.example.virtual_exchange.controller.api;
 
-import com.example.virtual_exchange.domain.Stock;
+import com.example.virtual_exchange.dto.StockResponseDto;
 import com.example.virtual_exchange.service.StockService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +17,8 @@ public class StockController {
     private final StockService stockService;
 
     @GetMapping
-    public List<Stock> getStocks(){
-        return stockService.getStocks();
+    public ResponseEntity<List<StockResponseDto>> getStocks() {
+        List<StockResponseDto> stocks = stockService.getAllStocks();
+        return ResponseEntity.ok(stocks);
     }
 }

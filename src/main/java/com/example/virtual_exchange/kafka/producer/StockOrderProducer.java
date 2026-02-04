@@ -31,6 +31,7 @@ public class StockOrderProducer {
 
         } catch (JsonProcessingException e) {
             log.error("JSON 변환 실패", e);
+            throw new RuntimeException(e);
         }
     }
 }

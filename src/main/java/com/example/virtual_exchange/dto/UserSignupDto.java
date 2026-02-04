@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MemberSignupDto {
+public class UserSignupDto {
 
     @NotBlank(message = "이메일은 필수입니다.")
     @Email(message = "올바른 이메일 형식이 아닙니다.") // 예: test@test.com 형식이 아니면 컷
