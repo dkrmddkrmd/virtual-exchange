@@ -24,7 +24,7 @@
     <tr th:each="stock : ${stocks}">
         <td th:text="${stock.code}">KRW-BTC</td>
         <td th:text="${stock.name}">비트코인</td>
-        <td th:text="${#numbers.formatInteger(stock.currentPrice, 0, 'COMMA')} + ' 원'">100,000,000 원</td>
+        <td th:text="${#numbers.formatInteger(stock.price, 0, 'COMMA')} + ' 원'">100,000,000 원</td>
 
         <td>
             <div class="d-flex gap-2">

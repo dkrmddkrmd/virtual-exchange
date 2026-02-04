@@ -105,6 +105,6 @@ public class StockService {
 
         return stockRepository.findAll().stream()
                 .map(StockResponseDto::new)
-                .toList();
+                .collect(Collectors.toList()); // <- ArrayList(가변 리스트)로 변환
     }
 }
