@@ -66,7 +66,7 @@
 
     function fetchOrderList() {
         // 페이징 정보 없이 요청하면 기본값(0페이지, 10개)이 옴
-        fetch('/api/orders/list')
+        fetch('/api/orders')
             .then(response => {
                 if (!response.ok) throw new Error("네트워크 응답 실패");
                 return response.json();
@@ -96,7 +96,7 @@
         orders.forEach(order => {
             // ★ 핵심 수정 2: DTO 필드명 확인 (createdDate vs orderDate)
             // 보통 Auditing을 쓰면 createdDate일 확률이 높음. 만약 안 나오면 orderDate로 다시 변경하세요.
-            const dateObj = new Date(order.createdDate);
+            const dateObj = new Date(order.orderDate);
             const dateStr = dateObj.toLocaleString('ko-KR');
 
             // ★ 핵심 수정 3: Enum 타입 비교 (한글 '매수'가 아니라 영어 'BUY'가 넘어옴)

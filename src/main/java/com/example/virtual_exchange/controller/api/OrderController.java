@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; // 2. 어노테이션 import
 import org.springframework.web.bind.annotation.*;
@@ -38,12 +39,12 @@ public class OrderController {
         // Kafka 파티셔닝(Key=userId) 덕분에 동시성 문제 없이 순서대로 처리됨
         orderService.createOrder(userId, requestDto);
 
-        return ResponseEntity.ok("주문 접수 완료");
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("주문 접수 완료");
     }
 
     // 주문 목록 조회 (페이징 추가)
     // 요청 예시: /api/orders/list?page=0&size=10 (0번 페이지, 10개씩)
-    @GetMapping("/list") // URL 유지
+    @GetMapping // URL 유지
     public ResponseEntity<Page<OrderHistoryDto>> getOrderLists(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
 

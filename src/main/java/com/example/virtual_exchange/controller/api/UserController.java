@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
 
-    @PostMapping("/signup")
+    @PostMapping
     public ResponseEntity<String> signup(@RequestBody @Valid UserSignupDto dto) {
         // try-catch 제거 -> 에러 발생 시 GlobalExceptionHandler가 낚아채서 처리함
         userService.join(dto.getEmail(), dto.getName(), dto.getPassword());
