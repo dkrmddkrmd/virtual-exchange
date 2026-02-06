@@ -16,7 +16,7 @@ public class StockScheduler {
 
     private final StockService stockService;
 
-    // 1초마다 실행 (이전 작업 끝나고 1초 뒤)
+    // 1초마다 실행 (이전 작업 끝나고 1초 뒤 [1000])
     @Scheduled(fixedDelay = 1000)
     public void updateStockPrices() {
         // 1. 데이터 가져오기 (트랜잭션 X, 가벼움)
