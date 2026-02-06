@@ -3,6 +3,7 @@ package com.example.virtual_exchange.kafka.consumer;
 import com.example.virtual_exchange.domain.*;
 import com.example.virtual_exchange.kafka.dto.OrderMessageDto;
 import com.example.virtual_exchange.repository.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,9 +41,12 @@ public class StockOrderConsumer {
                 log.warn("⚠️ 잘못된 주문 타입: {}", message.getOrderType());
             }
 
+        } catch (IllegalArgumentException | IllegalStateException | JsonProcessingException e) {
+            log.warn("⛔ [처리 불가 - 재시도 X] 사유: {}", e.getMessage());
+
         } catch (Exception e) {
-            // [중요] 실제 운영에선 여기서 DLQ(Dead Letter Queue)로 보내거나 알림을 줘야 함
-            log.error("❌ [Consumer] 주문 처리 실패", e);
+            log.error("🚨 [시스템 오류 - 재시도 O]", e);
+            throw new RuntimeException(e); // DB 에러 등은 여기서 잡혀서 재시도됨
         }
     }
 

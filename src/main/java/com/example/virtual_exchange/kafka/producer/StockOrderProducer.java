@@ -31,7 +31,9 @@ public class StockOrderProducer {
 
         } catch (JsonProcessingException e) {
             log.error("JSON 변환 실패", e);
-            throw new RuntimeException(e);
+            // 🚨 수정 제안: RuntimeException은 너무 퉁치는 느낌입니다.
+            // GlobalExceptionHandler가 "서버 에러"로 인식할 수 있게 명확한 예외를 던지는 게 좋습니다.
+            throw new IllegalArgumentException("주문 데이터 변환 중 오류가 발생했습니다.");
         }
     }
 }
