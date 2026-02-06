@@ -29,7 +29,15 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponseDto("BAD_REQUEST", ex.getMessage()));
     }
 
-    // 3. 그 외 예상치 못한 모든 에러 (최후의 보루)
+    // 3. 잘못된 상태 (중복 가입 등) -> 409 Conflict 또는 400 Bad Request
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDto> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT) // 409 Conflict (충돌)
+                .body(new ErrorResponseDto("DUPLICATE_RESOURCE", ex.getMessage()));
+    }
+
+    // 4. 그 외 예상치 못한 모든 에러 (최후의 보루)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
         ex.printStackTrace(); // 콘솔에 에러 로그는 찍어줌 (디버깅용)
