@@ -2,6 +2,7 @@ package com.example.virtual_exchange.facade;
 
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.service.OrderService;
+import com.example.virtual_exchange.service.TestOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -17,7 +18,8 @@ public class RedissonLockStockFacade {
     // 지금 쓰이진 않지만 일단 공부용
 
     private final RedissonClient redissonClient;
-    private final OrderService orderService;
+    //private final OrderService orderService;
+    private final TestOrderService testOrderService;
 
     public void createOrder(Long userId, OrderRequestDto requestDto) {
         // 1. 락 이름 정의 (사용자 ID별로 락을 검 -> 내 계좌만 잠금)
@@ -35,8 +37,16 @@ public class RedissonLockStockFacade {
                 throw new IllegalStateException("현재 주문량이 많아 처리가 지연되고 있습니다.");
             }
 
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            testOrderService.buy(userId, requestDto);
+
             // 3. ★ 진짜 비즈니스 로직 실행 (주문)
-            orderService.createOrder(userId, requestDto);
+            //orderService.createOrder(userId, requestDto);
 
         } catch (InterruptedException e) {
             log.error("[Lock 에러] 유저 {} 락 획득 중 인터럽트 발생", userId, e);

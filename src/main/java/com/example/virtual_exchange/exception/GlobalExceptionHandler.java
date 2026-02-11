@@ -7,8 +7,17 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice // ★ 중요: 모든 컨트롤러에서 터지는 에러를 여기서 잡겠다는 선언
+@RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ErrorResponseDto> handleDuplicateEmail(DuplicateEmailException ex) {
+        // log.error("중복 가입 시도 감지: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponseDto("DUPLICATE_EMAIL", ex.getMessage()));
+    }
 
     // 1. @Valid 검증 실패 시 (예: 이메일 형식이 아님, 수량이 0 이하)
     @ExceptionHandler(MethodArgumentNotValidException.class)

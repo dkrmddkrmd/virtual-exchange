@@ -27,10 +27,19 @@ public class StockOrderConsumer {
 
     // [트랜잭션 시작점]
     @Transactional
-    @KafkaListener(topics = "stock_order", groupId = "stock-group-v3", concurrency = "3")
+    @KafkaListener(topics = "stock_order", groupId = "stock-group-v6", concurrency = "3")
     public void consumeOrder(String messageJson, @Header(KafkaHeaders.RECEIVED_PARTITION) int partition) {
         try {
             OrderMessageDto message = objectMapper.readValue(messageJson, OrderMessageDto.class);
+
+            // ★ [추가] Before 테스트와 똑같은 조건(Heavy Logic) 부여
+            // "백그라운드에서 PG사 결제 승인 중... (2초 소요)"
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             log.info("🔥 [Consumer] 처리 시작 (Partition: {}, User: {})", partition, message.getUserId());
 
             if ("BUY".equalsIgnoreCase(message.getOrderType())) {

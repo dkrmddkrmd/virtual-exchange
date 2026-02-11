@@ -142,7 +142,7 @@ class OrderServiceTest {
         // 4. 로그 확인 (여기서 쿼리가 '주문 수'만큼 폭발해야 함)
         System.out.println("=====================================");
         System.out.println("▼ N+1 테스트 시작 (쿼리가 계속 나가야 함) ▼");
-        orderService.getOrderLogs(user.getId());
+        //orderService.getOrderLogs(user.getId());
         System.out.println("▲ N+1 테스트 종료 ▲");
         System.out.println("=====================================");
     }

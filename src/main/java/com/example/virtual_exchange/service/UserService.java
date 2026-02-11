@@ -2,6 +2,7 @@ package com.example.virtual_exchange.service;
 
 import com.example.virtual_exchange.domain.Account;
 import com.example.virtual_exchange.domain.User;
+import com.example.virtual_exchange.exception.DuplicateEmailException;
 import com.example.virtual_exchange.repository.AccountRepository;
 import com.example.virtual_exchange.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class UserService {
 
         // A. 중복 검사: existsByEmail 사용 추천 (쿼리가 가벼움)
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalStateException("이미 존재하는 회원입니다.");
+            throw new DuplicateEmailException("이미 가입된 이메일입니다: " + email);
         }
 
         // B. 비밀번호 암호화 및 유저 저장

@@ -12,44 +12,44 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable()) // 개발용
-                .authorizeHttpRequests(auth -> auth
-                        // 정적 리소스와 회원가입/로그인 페이지는 누구나 접근 가능
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/", "/login", "/signup", "/api/users").permitAll()
-                        // 나머지는 인증 필요 (그래야 PrincipalDetails가 만들어짐!)
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/login")        // 커스텀 로그인 페이지 경로
-                        .usernameParameter("email") // input name="email"
-                        .defaultSuccessUrl("/")     // 로그인 성공 시 이동
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                );
-
-        return http.build();
-    }
-
-    // 테스트시 사용
 //    @Bean
 //    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 //        http
-//                .csrf(csrf -> csrf.disable()) // CSRF 비활성화
-//                .formLogin(login -> login.disable()) // 폼 로그인 비활성화
-//                .httpBasic(basic -> basic.disable()) // HTTP Basic 비활성화
+//                .csrf(csrf -> csrf.disable()) // 개발용
 //                .authorizeHttpRequests(auth -> auth
-//                        .anyRequest().permitAll() // 🔥 모든 요청 허용 (테스트용)
+//                        // 정적 리소스와 회원가입/로그인 페이지는 누구나 접근 가능
+//                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+//                        .requestMatchers("/", "/login", "/signup", "/api/users").permitAll()
+//                        // 나머지는 인증 필요 (그래야 PrincipalDetails가 만들어짐!)
+//                        .anyRequest().authenticated()
+//                )
+//                .formLogin(form -> form
+//                        .loginPage("/login")        // 커스텀 로그인 페이지 경로
+//                        .usernameParameter("email") // input name="email"
+//                        .defaultSuccessUrl("/")     // 로그인 성공 시 이동
+//                        .permitAll()
+//                )
+//                .logout(logout -> logout
+//                        .logoutSuccessUrl("/")
+//                        .invalidateHttpSession(true)
 //                );
 //
 //        return http.build();
 //    }
+
+     //테스트시 사용
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable()) // CSRF 비활성화
+                .formLogin(login -> login.disable()) // 폼 로그인 비활성화
+                .httpBasic(basic -> basic.disable()) // HTTP Basic 비활성화
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // 🔥 모든 요청 허용 (테스트용)
+                );
+
+        return http.build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
