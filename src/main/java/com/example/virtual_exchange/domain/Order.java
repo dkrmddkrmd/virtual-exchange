@@ -8,8 +8,6 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor
-// 1. 테이블 이름 명시
-// 2. indexes 옵션으로 "복합 인덱스" 정의
 @Table(name = "orders", indexes = {
         @Index(name = "idx_user_date", columnList = "user_id, order_date DESC")
 })
@@ -19,28 +17,27 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY) // 한 유저가 주문을 수백 번 할 수 있음
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY) // 한 종목에 주문이 수천 개 쌓일 수 있음
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_code")
     private Stock stock;
 
-    @Enumerated(EnumType.STRING) // DB에 숫자(0,1) 대신 글자("BUY")로 저장
+    @Enumerated(EnumType.STRING)
     private OrderType orderType;
 
-    private Double price;    // 당시 체결 가격
-    private Long quantity;   // 주문 수량
-    private LocalDateTime orderDate; // 주문 시간
+    private Double price;
+    private Long quantity;
+    private LocalDateTime orderDate;
 
-    // 생성자
     public Order(User user, Stock stock, OrderType orderType, Double price, Long quantity) {
         this.user = user;
         this.stock = stock;
         this.orderType = orderType;
         this.price = price;
         this.quantity = quantity;
-        this.orderDate = LocalDateTime.now(); // 생성 시점 시간 자동 저장
+        this.orderDate = LocalDateTime.now();
     }
 }

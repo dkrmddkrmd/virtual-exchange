@@ -14,17 +14,17 @@ public class StockHolding {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY) // (중요) 한 사람이 여러 종목을 가질 수 있음!
-    @JoinColumn(name = "user_id")      // user_id 컬럼과 연결
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY) // (중요) 한 종목을 여러 사람이 가질 수 있음!
-    @JoinColumn(name = "stock_code")   // Stock의 PK는 code였죠?
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_code")
     private Stock stock;
 
-    private Long quantity; // 보유 수량
+    private Long quantity;
 
-    private Double avgPrice; // 평단가 (매수 평균가)
+    private Double avgPrice;
 
     public StockHolding(User user, Stock stock, Long quantity, Double avgPrice) {
         this.user = user;
@@ -33,7 +33,7 @@ public class StockHolding {
         this.avgPrice = avgPrice;
     }
 
-    // 비즈니스 로직: 추가 매수 시 평단가/수량 업데이트
+    //추가 매수 시 평단가/수량 업데이트
     public void addQuantity(Long amount, Double price) {
         // 평단가 계산 로직: ((기존수량 * 기존평단) + (새수량 * 새가격)) / 전체수량
         double totalCost = (this.quantity * this.avgPrice) + (amount * price);
@@ -46,6 +46,5 @@ public class StockHolding {
             throw new IllegalStateException("보유 수량이 부족하여 매도할 수 없습니다.");
         }
         this.quantity -= amount;
-
     }
 }
