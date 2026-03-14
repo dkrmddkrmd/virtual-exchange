@@ -1,4 +1,7 @@
 spring:
+  profiles:
+    active: local # 현재 환경을 로컬(local)로 설정!
+
   application:
     name: virtual-exchange
 
@@ -10,6 +13,7 @@ spring:
     password: '1234' # Docker 실행할 때 설정한 비밀번호
 
   jpa:
+    open-in-view: false
     # 서버 켤 때마다 Entity(자바 객체)랑 DB 테이블을 비교해서 다르면 업데이트해줌 (개발용 꿀기능)
     hibernate:
       ddl-auto: update

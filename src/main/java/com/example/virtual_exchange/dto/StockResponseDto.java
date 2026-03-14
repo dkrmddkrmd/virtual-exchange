@@ -11,7 +11,6 @@ public class StockResponseDto {
     private String name;
     private Double price;
 
-    // Entity -> DTO 변환 생성자
     public StockResponseDto(Stock stock) {
         this.code = stock.getCode();
         this.name = stock.getName();

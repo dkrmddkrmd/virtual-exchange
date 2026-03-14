@@ -19,7 +19,6 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<String> signup(@RequestBody @Valid UserSignupDto dto) {
-        // try-catch 제거 -> 에러 발생 시 GlobalExceptionHandler가 낚아채서 처리함
         userService.join(dto.getEmail(), dto.getName(), dto.getPassword());
 
         return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공!");

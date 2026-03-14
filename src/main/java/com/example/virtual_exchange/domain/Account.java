@@ -20,7 +20,7 @@ public class Account {
 
     public Account(User user) {
         this.user = user;
-        this.balance = 0L; // 초기 잔액 0원
+        this.balance = 0L;
     }
 
     public void increaseBalance(Long amount) {

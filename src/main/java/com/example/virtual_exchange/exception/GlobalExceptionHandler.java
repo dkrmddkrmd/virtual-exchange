@@ -1,33 +1,39 @@
 package com.example.virtual_exchange.exception;
 
 import com.example.virtual_exchange.dto.ErrorResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicateEmail(DuplicateEmailException ex) {
-        // log.error("중복 가입 시도 감지: {}", ex.getMessage());
+        log.error("중복 가입 시도 감지: {}", ex.getMessage());
+        ErrorCode errorCode = ErrorCode.DUPLICATE_EMAIL;
 
         return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponseDto("DUPLICATE_EMAIL", ex.getMessage()));
+                .status(errorCode.getStatus())
+                .body(ErrorResponseDto.of(errorCode, ex.getMessage()));
     }
 
-    // 1. @Valid 검증 실패 시 (예: 이메일 형식이 아님, 수량이 0 이하)
+    // DTO 유효성 검사 실패 처리 (@Valid 관련)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDto> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        // 첫 번째 에러 메시지만 뽑아서 보냄
-        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+    public ResponseEntity<ErrorResponseDto> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        log.error("유효성 검사 실패: {}", ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
+
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+        // 첫 번째 에러 메시지만 가져와서 사용자에게 전달
+        String message = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
 
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponseDto("INVALID_INPUT", errorMessage));
+                .status(errorCode.getStatus())
+                .body(ErrorResponseDto.of(errorCode, message));
     }
 
     // 2. 비즈니스 로직 에러 (예: throw new IllegalArgumentException("잔액 부족"))

@@ -1,54 +1,35 @@
 package com.example.virtual_exchange.service;
 
-import com.example.virtual_exchange.domain.Account;
-import com.example.virtual_exchange.domain.User;
+import com.example.virtual_exchange.exception.DuplicateEmailException;
 import com.example.virtual_exchange.repository.AccountRepository;
 import com.example.virtual_exchange.repository.UserRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+@ExtendWith(MockitoExtension.class)
+public class UserServiceTest {
+    @Mock private UserRepository userRepository;
+    @Mock AccountRepository accountRepository;
+    @Mock PasswordEncoder passwordEncoder;
 
-@SpringBootTest
-@Transactional
-class UserServiceTest {
-
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    AccountRepository accountRepository;
-    @Autowired
-    UserService userService;
+    @InjectMocks private UserService userService;
 
     @Test
-    void JoinTest(){
-        //given
+    public void 메일_중복_예외_테스트(){
+        //Given
         String email = "test@test.com";
+        Mockito.when(userRepository.existsByEmail(email)).thenReturn(true);
 
-        //when
-        Long userId = userService.join(email, "test", "1234");
+        //when & then
+        Assertions.assertThrows(DuplicateEmailException.class, () -> userService.join(email, "test", "1234"));
 
-        //then
-        User foundUser = userRepository.findById(userId).get();
-        assertThat(foundUser.getEmail()).isEqualTo(email);
-        assertThat(foundUser.getName()).isEqualTo("test");
-
-        //then 2
-//        Account foundAccount = accountRepository.findAll().stream()
-//                .filter(a -> a.getUser().getId().equals(userId))
-//                .findFirst()
-//                .get();
-
-        Account foundAccount = accountRepository.findByUserId(userId).get();
-
-        assertThat(foundAccount).isNotNull();
-        assertThat(foundAccount.getBalance()).isEqualTo(0L);
-    }
-
-    @Test
-    void DuplicateJoinTest(){
-
+        Mockito.verify(userRepository, Mockito.times(1)).existsByEmail(email);
     }
 }

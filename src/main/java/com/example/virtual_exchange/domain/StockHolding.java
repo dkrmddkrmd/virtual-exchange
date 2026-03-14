@@ -1,6 +1,5 @@
 package com.example.virtual_exchange.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StockHolding {
 
-    @Id // 고민 해결: 그냥 숫자 ID 쓰세요!
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

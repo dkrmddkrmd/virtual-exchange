@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpbitTickerDto {
+public class  UpbitTickerDto {
     private String market;
     private Double trade_price;
 }
