@@ -3,6 +3,7 @@ package com.example.virtual_exchange.service;
 import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.dto.StockResponseDto;
 import com.example.virtual_exchange.dto.UpbitTickerDto;
+import com.example.virtual_exchange.exception.UpbitApiCallException;
 import com.example.virtual_exchange.repository.StockRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -45,26 +46,27 @@ public class StockService {
                     .collectList()
                     .block(); // 동기 처리
         } catch (Exception e) {
-            log.error("[Upbit API Error] 시세 조회 실패", e);
-            return Collections.emptyList();
+            throw new UpbitApiCallException("업비트 시세 조회 중 오류 발생: " + e.getMessage());
         }
     }
 
     @Transactional
     public void bulkUpdateStocks(List<UpbitTickerDto> tickerList) {
-        if (tickerList == null || tickerList.isEmpty()) return;
-
+        // 입력 dto에서 market 값만 꺼냄
         List<String> marketCodes = tickerList.stream()
                 .map(UpbitTickerDto::getMarket)
                 .toList();
 
+        // 내 repositroy에 존재하는 주식들
         List<Stock> existingStocks = stockRepository.findAllById(marketCodes);
 
+        // 내 존재하는 주식들을 map형태로
         Map<String, Stock> stockMap = existingStocks.stream()
                 .collect(Collectors.toMap(Stock::getCode, stock -> stock));
 
         List<Stock> stocksToSave = new ArrayList<>();
 
+        // 입력받은 리스트들 dto
         for (UpbitTickerDto dto : tickerList) {
             Stock stock = stockMap.get(dto.getMarket());
 
@@ -81,11 +83,7 @@ public class StockService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "stocks", key = "'allStocks'")
     public List<StockResponseDto> getAllStocks() {
-        // 캐시 없을 때만 로그 찍힘
-        log.info("[Cache Miss] DB에서 주식 목록 조회");
-
         return stockRepository.findAll().stream()
                 .map(StockResponseDto::new)
                 .collect(Collectors.toList());

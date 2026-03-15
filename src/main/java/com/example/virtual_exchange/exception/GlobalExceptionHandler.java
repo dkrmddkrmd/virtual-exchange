@@ -14,12 +14,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicateEmail(DuplicateEmailException ex) {
-        log.error("중복 가입 시도 감지: {}", ex.getMessage());
+        log.error("중복 가입 시도 감지: {}", ex.getMessage(), ex);
         ErrorCode errorCode = ErrorCode.DUPLICATE_EMAIL;
 
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(ErrorResponseDto.of(errorCode, ex.getMessage()));
+                .body(ErrorResponseDto.of(errorCode, errorCode.getMessage()));
+    }
+
+    @ExceptionHandler(UpbitApiCallException.class)
+    public ResponseEntity<ErrorResponseDto> handleApiCallError(UpbitApiCallException ex) {
+        log.error("Upbit API 오류: {}", ex.getMessage(), ex);
+
+        ErrorCode errorCode = ErrorCode.UPBIT_API_ERROR;
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ErrorResponseDto.of(errorCode, errorCode.getMessage()));
     }
 
     // DTO 유효성 검사 실패 처리 (@Valid 관련)
