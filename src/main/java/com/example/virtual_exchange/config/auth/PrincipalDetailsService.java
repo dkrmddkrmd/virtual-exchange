@@ -19,10 +19,6 @@ public class PrincipalDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("유저 없음: " + username));
 
-        // [변경 전] 스프링 기본 User 객체 반환
-        // return org.springframework.security.core.userdetails.User.builder()...build();
-
-        // [변경 후] 우리가 만든 PrincipalDetails 반환 (여기에 user 정보가 다 들어감)
         return new PrincipalDetails(user);
     }
 }

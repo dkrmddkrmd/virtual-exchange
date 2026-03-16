@@ -9,13 +9,12 @@ import java.util.ArrayList;
 
 public class PrincipalDetails implements UserDetails {
 
-    private final User user; // 우리의 User 엔티티를 품고 있음
+    private final User user;
 
     public PrincipalDetails(User user) {
         this.user = user;
     }
 
-    // ★ 핵심: 컨트롤러에서 꺼내 쓸 수 있게 getter 제공
     public User getUser() {
         return user;
     }

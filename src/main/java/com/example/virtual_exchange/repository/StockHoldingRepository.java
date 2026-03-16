@@ -12,7 +12,6 @@ import java.util.Optional;
 
 public interface StockHoldingRepository extends JpaRepository<StockHolding, Long> {
     Optional<StockHolding> findByUserAndStock(User user, Stock stock);
-    List<StockHolding> findAllByUserIdAndStockCode(Long userId, String stockCode);
 
     // sh(보유주식)을 가져올 때, sh.stock(종목정보)도 같이(FETCH) 가져오라는 뜻
     @Query("SELECT sh FROM StockHolding sh JOIN FETCH sh.stock WHERE sh.user.id = :userId")

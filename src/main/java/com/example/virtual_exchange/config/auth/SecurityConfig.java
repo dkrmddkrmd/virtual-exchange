@@ -20,7 +20,7 @@ public class SecurityConfig {
                         // 정적 리소스와 회원가입/로그인 페이지는 누구나 접근 가능
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/", "/login", "/signup", "/api/users").permitAll()
-                        // 나머지는 인증 필요 (그래야 PrincipalDetails가 만들어짐!)
+                        // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
