@@ -1,6 +1,5 @@
-package com.example.virtual_exchange.kafka.dto;
+package com.example.virtual_exchange.dto;
 
-import com.example.virtual_exchange.domain.OrderType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

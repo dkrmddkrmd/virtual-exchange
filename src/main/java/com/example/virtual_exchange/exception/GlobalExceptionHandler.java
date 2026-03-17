@@ -33,6 +33,17 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponseDto.of(errorCode, errorCode.getMessage()));
     }
 
+    @ExceptionHandler(KafkaProducerErrorException.class)
+    public ResponseEntity<ErrorResponseDto> handlerKafkaError(KafkaProducerErrorException ex){
+        log.error("카프카 API 요청 오류", ex.getMessage(), ex);
+
+        ErrorCode errorCode = ErrorCode.Kafka_API_ERROR;
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ErrorResponseDto.of(errorCode, errorCode.getMessage()));
+    }
+
     // DTO 유효성 검사 실패 처리 (@Valid 관련)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDto> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {

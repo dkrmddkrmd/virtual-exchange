@@ -2,7 +2,7 @@ package com.example.virtual_exchange.service;
 
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.kafka.producer.StockOrderProducer;
-import com.example.virtual_exchange.kafka.dto.OrderMessageDto;
+import com.example.virtual_exchange.dto.OrderMessageDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -12,18 +12,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final StockOrderProducer stockOrderProducer;
 
-    // 주문 요청 (Kafka로 메시지 전송)
     public void createOrder(Long userId, OrderRequestDto dto) {
         OrderMessageDto message = new OrderMessageDto(
                 userId,

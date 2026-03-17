@@ -1,6 +1,7 @@
 package com.example.virtual_exchange.kafka.producer;
 
-import com.example.virtual_exchange.kafka.dto.OrderMessageDto;
+import com.example.virtual_exchange.dto.OrderMessageDto;
+import com.example.virtual_exchange.exception.KafkaProducerErrorException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,24 +17,24 @@ public class StockOrderProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    // 토픽 이름을 여기서 상수로 관리 (Service가 몰라도 됨)
     private static final String TOPIC = "stock_order";
 
     public void sendOrder(OrderMessageDto dto) {
         try {
             String jsonMessage = objectMapper.writeValueAsString(dto);
-
-            // [수정 후] userId를 Key로 설정 -> 같은 유저는 같은 파티션으로 -> 순서 보장!
             String key = String.valueOf(dto.getUserId());
-            kafkaTemplate.send(TOPIC, key, jsonMessage);
 
-            log.info("📤 [Producer] 주문 전송 (Key: {}): {}", key, jsonMessage);
+            //.get()을 호출해서 카프카 브로커의 응답을 끝까지 기다림
+            kafkaTemplate.send(TOPIC, key, jsonMessage).get();
+
+            log.info("📤 [Producer] 주문 전송 완료 (Key: {}): {}", key, jsonMessage);
 
         } catch (JsonProcessingException e) {
-            log.error("JSON 변환 실패", e);
-            // 🚨 수정 제안: RuntimeException은 너무 퉁치는 느낌입니다.
-            // GlobalExceptionHandler가 "서버 에러"로 인식할 수 있게 명확한 예외를 던지는 게 좋습니다.
-            throw new IllegalArgumentException("주문 데이터 변환 중 오류가 발생했습니다.");
+            throw new KafkaProducerErrorException("주문 데이터 변환 중 오류가 발생했습니다.");
+        } catch (Exception e) {
+            //.get() 대기 중에 카프카가 죽어있거나 타임아웃이 나면 이리로 빠집니다
+            log.error("🚨 [Producer] 주문 전송 실패 (Key: {}): {}", dto.getUserId(), e.getMessage());
+            throw new KafkaProducerErrorException("카프카 서버로 주문을 전송하는 데 실패했습니다.");
         }
     }
 }

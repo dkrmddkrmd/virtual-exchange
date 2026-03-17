@@ -13,8 +13,8 @@ public class KafkaConfig {
     @Bean
     public NewTopic stockOrderTopic() {
         return TopicBuilder.name("stock_order") // 프로듀서/컨슈머에서 쓰는 토픽 이름과 같아야 함
-                .partitions(3)                  // ★ 핵심: 파티션(창구) 개수 3개
-                .replicas(1)                    // 로컬이라 복제본은 1개 (운영 환경에선 보통 3개)
+                .partitions(3)                  // 파티션 개수 3개
+                .replicas(1)                    // 로컬이라 복제본은 1개
                 .build();
     }
 }
