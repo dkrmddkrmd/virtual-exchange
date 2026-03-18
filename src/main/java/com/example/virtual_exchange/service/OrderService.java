@@ -33,6 +33,7 @@ public class OrderService {
     }
 
     // 주문 내역 조회 (페이징)
+    @Transactional(readOnly = true)
     public Page<OrderHistoryDto> getOrderLists(Long userId, Pageable pageable){
         return orderRepository.findAllByUserIdWithStock(userId, pageable)
                 .map(OrderHistoryDto::new);

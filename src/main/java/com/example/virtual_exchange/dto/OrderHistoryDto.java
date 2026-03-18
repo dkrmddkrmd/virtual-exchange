@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.format.DateTimeFormatter;
 
-// OrderHistoryDto.java
+
 @Getter
 @NoArgsConstructor
 public class OrderHistoryDto {

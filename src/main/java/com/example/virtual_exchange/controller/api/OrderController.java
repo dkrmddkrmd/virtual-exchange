@@ -7,6 +7,7 @@ import com.example.virtual_exchange.facade.RedissonLockStockFacade;
 import com.example.virtual_exchange.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; // 2. 어노테이션 import
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/orders")
@@ -34,19 +36,14 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("주문 접수 완료");
     }
 
-    // 주문 목록 조회 (페이징 추가)
-    // 요청 예시: /api/orders/list?page=0&size=10 (0번 페이지, 10개씩)
     @GetMapping // URL 유지
     public ResponseEntity<Page<OrderHistoryDto>> getOrderLists(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-
-            // [추가] 페이징 처리 자동 매핑 객체
-            // @PageableDefault(size = 10): 안 보내면 기본 10개씩 가져옴
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Long userId = principalDetails.getUser().getId();
 
-        // 서비스에 pageable 전달
+        log.info("[Controller] 주문 내역 조회 요청 - User: {}, Page: {}", userId, pageable.getPageNumber());
         Page<OrderHistoryDto> orderList = orderService.getOrderLists(userId, pageable);
 
         return ResponseEntity.ok(orderList);
