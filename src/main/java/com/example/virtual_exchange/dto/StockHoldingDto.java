@@ -1,11 +1,15 @@
 package com.example.virtual_exchange.dto;
 
 import com.example.virtual_exchange.domain.StockHolding;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class StockHoldingDto {
     private String stockName;
     private String stockCode;

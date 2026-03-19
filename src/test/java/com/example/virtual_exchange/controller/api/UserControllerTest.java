@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -13,6 +14,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -20,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureRestDocs
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -27,6 +32,34 @@ public class UserControllerTest {
     private ObjectMapper objectMapper;
     @MockitoBean
     private UserService userService;
+
+    @Test
+    @DisplayName("정상적인 데이터로 회원가입 시 성공하고 문서가 추출된다")
+    public void 회원가입_성공_문서화_테스트() throws Exception{
+        //Given
+        UserSignupDto dto = UserSignupDto.builder()
+                .email("apiTest@test.com")
+                .name("apiTester")
+                .password("1234")
+                .build();
+
+        String jsonDto = objectMapper.writeValueAsString(dto);
+
+        // Mockito.when(userService.signup(Mockito.any())).thenReturn(1L);
+
+        //When & Then
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonDto))
+                .andExpect(status().isCreated())
+                //Rest Docs 문서 추출
+                .andDo(document("user-signup", requestFields(
+                        fieldWithPath("email").description("사용자 이메일"),
+                        fieldWithPath("name").description("사용자 이름"),
+                        fieldWithPath("password").description("비밀번호 (4자리 이상)")
+                )));
+
+    }
 
     @Test
     @DisplayName("비밀번호 4자리 미만일때 유효성 검사에서 예외 발생")

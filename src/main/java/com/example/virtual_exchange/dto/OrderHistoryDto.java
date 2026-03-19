@@ -2,6 +2,7 @@ package com.example.virtual_exchange.dto;
 
 import com.example.virtual_exchange.domain.Order;
 import com.example.virtual_exchange.domain.OrderType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderHistoryDto {
     private Long orderId;
     private String stockName;

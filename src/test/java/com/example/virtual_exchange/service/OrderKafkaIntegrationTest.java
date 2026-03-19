@@ -16,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.UUID;
+
 @SpringBootTest
 @EmbeddedKafka(partitions = 3, topics = {"stock_order"})
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
@@ -35,7 +37,10 @@ public class OrderKafkaIntegrationTest {
     @DisplayName("진짜 카프카를 타고 매수 로직이 처음부터 끝까지 잘 도는지 확인한다.")
     public void 카프카_매수_통합_테스트() throws InterruptedException {
         //Given
-        User user = new User("mytest@test.com", "1234", "tester");
+        String randomString = UUID.randomUUID().toString().substring(0, 8);
+        String email = "test_" + randomString + "@test.com";
+
+        User user = new User(email, "1234", "tester");
         User findUser = userRepository.save(user);
 
         Account account = new Account(user);
