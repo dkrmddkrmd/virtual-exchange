@@ -1,6 +1,6 @@
 # 📈 실시간 대용량 가상 자산 거래 플랫폼 (Virtual Exchange)
 
-👉 **[API 명세서 보러가기](build/docs/asciidoc/index.html)**
+👉 **[API 명세서 보러가기](https://dkrmddkrmd.github.io/virtual-exchange/)**
 
 > **대규모 트래픽 상황에서도 안정적인 주문 처리를 보장하는 가상 자산 모의 투자 서비스입니다.**
 > Upbit API를 활용한 실시간 시세 연동과 Kafka 기반의 비동기 주문 처리를 구현했습니다.
@@ -23,17 +23,7 @@
 
 ## 🏛 Architecture
 
-```mermaid
-flowchart LR
-    Client([Client / React]) -- REST API --> WAS[Spring Boot Server]
-    
-    subgraph Backend 인프라
-        WAS -- 1. Caching & Lock --> Redis[(Redis)]
-        WAS -- 2. CRUD --> DB[(MySQL)]
-        WAS -- 3. Publish Order --> Kafka[Kafka Broker]
-        Kafka -- 4. Consume Order --> WAS
-    end
-```
+![아키텍처 다이어그램](assets/architecture.png)
 
 * **Redis Caching & Lock:** 자주 조회되는 코인 시세 정보 캐싱(Look-aside) 및 분산 락 제어
 * **Kafka Async Processing:** 주문 요청을 비동기 메시지로 발행하여 트래픽 병목 해소
@@ -95,4 +85,3 @@ docker-compose up -d
 
 # 3. 애플리케이션 실행
 ./gradlew bootRun
-```
