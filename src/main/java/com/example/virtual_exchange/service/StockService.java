@@ -8,6 +8,7 @@ import com.example.virtual_exchange.repository.StockRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +52,7 @@ public class StockService {
     }
 
     @Transactional
+    @CacheEvict(value = "stocks", key = "'allStocks'") // DB가 갱신될 때 기존 캐시를 폭파시킵니다!
     public void bulkUpdateStocks(List<UpbitTickerDto> tickerList) {
         // 입력 dto에서 market 값만 꺼냄
         List<String> marketCodes = tickerList.stream()
@@ -82,8 +84,11 @@ public class StockService {
         stockRepository.saveAll(stocksToSave);
     }
 
+
     @Transactional(readOnly = true)
+    @Cacheable(value = "stocks", key = "'allStocks'")
     public List<StockResponseDto> getAllStocks() {
+        log.info("📢 [DB 조회] 캐시가 없어서 DB에서 주식 목록을 가져옵니다...");
         return stockRepository.findAll().stream()
                 .map(StockResponseDto::new)
                 .collect(Collectors.toList());

@@ -22,8 +22,7 @@ public class CacheConfig {
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         // 1. 기본 설정 (TTL 3초)
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                //.entryTtl(Duration.ofSeconds(3)) // 3초 뒤 삭제
-                .entryTtl(Duration.ofMinutes(10)) // 잠시 테스트용
+                .entryTtl(Duration.ofSeconds(10)) // 10초 뒤 삭제
                 .disableCachingNullValues()
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
