@@ -34,6 +34,9 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+jwt:
+  secret: c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLXNlY3JldC1rZXktdmlydHVhbC1leGNoYW5nZQ==
+
 server:
   servlet:
     session:

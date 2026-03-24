@@ -1,12 +1,17 @@
 package com.example.virtual_exchange.config.auth;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -15,30 +20,34 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtUtil jwtUtil;
+    private final AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .csrf(csrf -> csrf.disable()) // 개발용
+                // CORS 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // CSRF
+                .csrf(csrf -> csrf.disable())
+
+                // 폼 로그인 & HTTP Basic 인증 비활성화
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+
+                // 세션 사용 안 함 선언
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 5. API 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        // 정적 리소스와 회원가입/로그인 페이지는 누구나 접근 가능
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/", "/login", "/signup", "/api/users", "/api/stocks").permitAll()
-                        // 나머지는 인증 필요
+                        .requestMatchers("/api/stocks", "/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/login")        // 커스텀 로그인 페이지 경로
-                        .usernameParameter("email") // input name="email"
-                        .defaultSuccessUrl("/")     // 로그인 성공 시 이동
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                );
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -61,5 +70,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 }
