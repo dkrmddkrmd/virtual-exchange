@@ -1,11 +1,18 @@
 package com.example.virtual_exchange.controller.api;
 
+import com.example.virtual_exchange.config.auth.JwtUtil;
 import com.example.virtual_exchange.config.auth.PrincipalDetails;
+import com.example.virtual_exchange.config.auth.PrincipalDetailsService;
+import com.example.virtual_exchange.config.auth.SecurityConfig;
 import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.domain.User;
+import com.example.virtual_exchange.dto.ChargeRequestDto;
 import com.example.virtual_exchange.dto.MyAssetDto;
 import com.example.virtual_exchange.dto.StockHoldingDto;
+import com.example.virtual_exchange.dto.TokenInfo;
 import com.example.virtual_exchange.service.StockHoldingService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,29 +20,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(StockHoldingController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@TestPropertySource(properties = {"jwt.secret=c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLXNlY3JldC1rZXktc3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLXNlY3JldC1rZXkK"})
+@AutoConfigureMockMvc
 @AutoConfigureRestDocs
+@Import({SecurityConfig.class, JwtUtil.class})
 public class StockHoldingControllerTest {
 
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    JwtUtil jwtUtil;
+
     @MockitoBean
     StockHoldingService stockHoldingService;
+
+    @MockitoBean
+    PrincipalDetailsService principalDetailsService;
 
     @Test
     @DisplayName("포트폴리오 조회 및 문서 테스트")
@@ -45,10 +67,11 @@ public class StockHoldingControllerTest {
         Stock stock = new Stock("Code", "Name", 2000D);
         PrincipalDetails principalDetails = new PrincipalDetails(user);
 
-        //SecurityContext(VIP룸)에 가짜 신분증을 다이렉트로 꽂아넣습니다!
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
+        String testJwtToken = tokenInfo.getAccessToken();
 
         StockHoldingDto holding1 = StockHoldingDto.builder()
                 .stockCode("KRW-BTC")
@@ -74,11 +97,17 @@ public class StockHoldingControllerTest {
                 .build();
 
         Mockito.when(stockHoldingService.getMyAssetStatus(Mockito.any())).thenReturn(fakeAssetDto);
+        Mockito.when(principalDetailsService.loadUserByUsername(Mockito.anyString())).thenReturn(principalDetails);
+
 
         //When & Then
-        mockMvc.perform(get("/api/my-assets"))
+        mockMvc.perform(get("/api/assets")
+                        .header("Authorization", "Bearer " + testJwtToken))
                 .andExpect(status().isOk())
-                .andDo(document("my-assets",
+                .andDo(document("assets",
+                        requestHeaders(
+                                headerWithName("Authorization").description("JWT 인증 토큰 (Bearer 타입 필수)")
+                        ),
                         responseFields(
                                 fieldWithPath("totalAssetAmount").description("총 자산 금액"),
                                 fieldWithPath("balance").description("보유 예수금"),
@@ -98,5 +127,90 @@ public class StockHoldingControllerTest {
                                 fieldWithPath("holdingList[].evaluationAmount").description("총 평가 금액")
                         )
                 ));
+    }
+
+    @Test
+    @DisplayName("정상적인 금액(예: 10,000원) 요청 시 201 Created 상태 코드 및 올바른 응답 메시지 반환 검증")
+    public void 충전_성공_테스트() throws Exception {
+        //Given
+        long chargeAmount = 10000L;
+        long finalBalance = 60000L;
+
+        User user = new User("chargeTest@test.com", "1234", "tester");
+        ReflectionTestUtils.setField(user, "id", 1L);
+        PrincipalDetails principalDetails = new PrincipalDetails(user);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
+        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
+        String testJwtToken = tokenInfo.getAccessToken();
+
+        ChargeRequestDto dto = new ChargeRequestDto(chargeAmount);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(dto);
+
+        Mockito.when(stockHoldingService.increaseMoney(user.getId(), chargeAmount)).thenReturn(finalBalance);
+        Mockito.when(principalDetailsService.loadUserByUsername(Mockito.anyString())).thenReturn(principalDetails);
+
+
+        //When & Then
+        mockMvc.perform(patch("/api/assets/charge")
+                .header("Authorization", "Bearer " + testJwtToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(chargeAmount + "원이 정상적으로 충전되었습니다. (현재 총 잔고: " + finalBalance + "원)"))
+                .andDo(document("charge-money",
+                        requestHeaders(
+                                headerWithName("Authorization").description("JWT 인증 토큰 (Bearer 타입 필수)")
+                        ),
+                        requestFields(
+                                fieldWithPath("money").description("충전할 금액 (최소 1원 이상)")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("0원 또는 음수 금액 요청 시 @Valid 작동 여부 및 400 Bad Request 예외 반환 검증")
+    public void 충전_실패_테스트() throws Exception {
+        //Given
+        long chargeAmount = -10000L;
+
+        User user = new User("chargeTest@test.com", "1234", "tester");
+        ReflectionTestUtils.setField(user, "id", 1L);
+        PrincipalDetails principalDetails = new PrincipalDetails(user);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
+        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
+        String testJwtToken = tokenInfo.getAccessToken();
+
+        ChargeRequestDto dto = new ChargeRequestDto(chargeAmount);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(dto);
+
+        Mockito.when(principalDetailsService.loadUserByUsername(Mockito.anyString())).thenReturn(principalDetails);
+
+
+        //When & Then
+        mockMvc.perform(patch("/api/assets/charge")
+                        .header("Authorization", "Bearer " + testJwtToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("최소 1원 이상 요청해야 합니다."));
+    }
+
+    @Test
+    @DisplayName("JWT 토큰 없이 요청 시 401 Unauthorized 반환 검증")
+    public void 충전_인증_실패_테스트() throws Exception {
+        // Given
+        ChargeRequestDto dto = new ChargeRequestDto(10000L); // 정상 금액을 넣어도
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(dto);
+
+        // When & Then
+        mockMvc.perform(patch("/api/assets/charge")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isForbidden());
     }
 }
