@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -86,5 +87,55 @@ public class StockHoldingTest {
         //Then
         Assertions.assertEquals(0D, myAssetDto.getReturnRate());
         Assertions.assertEquals(10000L, account.getBalance());
+    }
+
+    @Test
+    @DisplayName("정상적인 금액(예: 10,000원) 요청 시 성공")
+    public void 금액_증가_테스트(){
+        //Given
+        User user = new User("test@test.com", "1234", "tester");
+
+        // ReflectionTestUtils를 사용하여 user 객체의 "id" 필드에 1L 값을 강제 주입
+        ReflectionTestUtils.setField(user, "id", 1L);
+
+        Account account = new Account(user);
+        long chargeBalance = 10000L;
+
+        Mockito.when(accountRepository.findByUserId(user.getId())).thenReturn(Optional.of(account));
+
+        //When
+        long findMoney = stockHoldingService.increaseMoney(user.getId(), chargeBalance);
+
+        //Then
+        Assertions.assertEquals(10000L, findMoney);
+    }
+
+    @Test
+    @DisplayName("0원 또는 음수 금액 요청 시 실패")
+    public void 금액_증가_실패_테스트(){
+        //Given
+        User user = new User("test@test.com", "1234", "tester");
+
+        ReflectionTestUtils.setField(user, "id", 1L);
+
+        Account account = new Account(user);
+        long chargeBalance = -10000L;
+
+        //When & Then
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            stockHoldingService.increaseMoney(user.getId(), chargeBalance);
+        });
+    }
+
+    @Test
+    @DisplayName("유저가 없을 때")
+    public void 유저_없을때_실패_테스트(){
+        //Given
+        Mockito.when(accountRepository.findByUserId(Mockito.any())).thenReturn(Optional.empty());
+
+        //When & Then
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            stockHoldingService.increaseMoney(1L, 100L);
+        });
     }
 }

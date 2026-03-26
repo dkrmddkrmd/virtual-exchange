@@ -64,7 +64,7 @@ public class StockHoldingService {
     }
 
     @Transactional
-    public long increaseMoney(long userId, long money){
+    public long increaseMoney(Long userId, Long money){
         if(money < 0){
             throw new IllegalArgumentException("음수의 돈이 입금되었습니다.");
         }

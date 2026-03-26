@@ -1,14 +1,11 @@
 package com.example.virtual_exchange.controller.api;
 
 import com.example.virtual_exchange.config.auth.PrincipalDetails;
-import com.example.virtual_exchange.controller.api.StockHoldingController;
 import com.example.virtual_exchange.domain.Stock;
-import com.example.virtual_exchange.domain.StockHolding;
 import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.dto.MyAssetDto;
 import com.example.virtual_exchange.dto.StockHoldingDto;
 import com.example.virtual_exchange.service.StockHoldingService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -32,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(StockHoldingController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureRestDocs
-public class StockHoldingTest {
+public class StockHoldingControllerTest {
 
     @Autowired
     MockMvc mockMvc;
