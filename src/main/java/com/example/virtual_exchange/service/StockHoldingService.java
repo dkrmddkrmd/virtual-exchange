@@ -62,4 +62,18 @@ public class StockHoldingService {
                 .holdingList(holdingDtos)
                 .build();
     }
+
+    @Transactional
+    public long increaseMoney(long userId, long money){
+        if(money < 0){
+            throw new IllegalArgumentException("음수의 돈이 입금되었습니다.");
+        }
+
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("계좌가 존재하지 않음"));
+
+        account.increaseBalance(money);
+
+        return account.getBalance();
+    }
 }

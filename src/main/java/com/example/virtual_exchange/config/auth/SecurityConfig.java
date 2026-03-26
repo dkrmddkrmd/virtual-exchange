@@ -26,7 +26,7 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
                 // CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/stocks", "/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(jwtFilter, LoginFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -63,7 +64,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of("http://localhost:5173")); // 리액트 주소
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
