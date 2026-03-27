@@ -1,5 +1,7 @@
 package com.example.virtual_exchange.controller.api;
 
+import com.example.virtual_exchange.config.auth.JwtUtil;
+import com.example.virtual_exchange.config.auth.PrincipalDetailsService;
 import com.example.virtual_exchange.dto.UserSignupDto;
 import com.example.virtual_exchange.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -32,6 +35,10 @@ public class UserControllerTest {
     private ObjectMapper objectMapper;
     @MockitoBean
     private UserService userService;
+    @MockitoBean
+    private JwtUtil jwtUtil;
+    @MockitoBean
+    private PrincipalDetailsService principalDetailsService;
 
     @Test
     @DisplayName("정상적인 데이터로 회원가입 시 성공하고 문서가 추출된다")
@@ -44,8 +51,6 @@ public class UserControllerTest {
                 .build();
 
         String jsonDto = objectMapper.writeValueAsString(dto);
-
-        // Mockito.when(userService.signup(Mockito.any())).thenReturn(1L);
 
         //When & Then
         mockMvc.perform(post("/api/users")

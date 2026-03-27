@@ -1,12 +1,16 @@
 package com.example.virtual_exchange.controller.api;
 
+import com.example.virtual_exchange.config.auth.JwtUtil;
 import com.example.virtual_exchange.config.auth.PrincipalDetails;
+import com.example.virtual_exchange.config.auth.PrincipalDetailsService;
+import com.example.virtual_exchange.config.auth.SecurityConfig;
 import com.example.virtual_exchange.domain.Order;
 import com.example.virtual_exchange.domain.OrderType;
 import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
+import com.example.virtual_exchange.dto.TokenInfo;
 import com.example.virtual_exchange.service.OrderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,17 +21,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,8 +43,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @AutoConfigureRestDocs
+@Import({SecurityConfig.class, JwtUtil.class})
+@TestPropertySource(properties = {"jwt.secret=c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLXNlY3JldC1rZXktc3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLXNlY3JldC1rZXkK"})
 public class OrderControllerTest {
     @Autowired
     MockMvc mockMvc;
@@ -44,6 +54,10 @@ public class OrderControllerTest {
     ObjectMapper objectMapper;
     @MockitoBean
     OrderService orderService;
+    @Autowired
+    JwtUtil jwtUtil;
+    @MockitoBean
+    PrincipalDetailsService principalDetailsService;
 
     @Test
     @DisplayName("주문 로직 및 문서화 테스트")
@@ -53,18 +67,25 @@ public class OrderControllerTest {
         PrincipalDetails principalDetails = new PrincipalDetails(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
+        String testJwtToken = tokenInfo.getAccessToken();
 
         OrderRequestDto dto = new OrderRequestDto("Code", 1L, "BUY");
 
         String json = objectMapper.writeValueAsString(dto);
 
+        Mockito.when(principalDetailsService.loadUserByUsername(Mockito.anyString())).thenReturn(principalDetails);
+
         //When & Then
         mockMvc.perform(post("/api/orders")
+                .header("Authorization", "Bearer " + testJwtToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isAccepted())
                 .andDo(document("create-order",
+                        requestHeaders(
+                                headerWithName("Authorization").description("JWT 인증 토큰 (Bearer 타입 필수)")
+                        ),
                         requestFields(
                                 fieldWithPath("code").description("주식 종목 코드"),
                                 fieldWithPath("quantity").description("주문 수량 (최소 1주 이상)"),
@@ -81,7 +102,9 @@ public class OrderControllerTest {
         PrincipalDetails principalDetails = new PrincipalDetails(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
+        String testJwtToken = tokenInfo.getAccessToken();
+
         Stock stock = new Stock("Code", "Name", 1000D);
 
         PageRequest pageRequest = PageRequest.of(0, 10);
@@ -92,10 +115,16 @@ public class OrderControllerTest {
 
 
         Mockito.when(orderService.getOrderLists(Mockito.any(), Mockito.any())).thenReturn(orderPage);
+        Mockito.when(principalDetailsService.loadUserByUsername(Mockito.anyString())).thenReturn(principalDetails);
 
-        mockMvc.perform(get("/api/orders"))
+        //When % Then
+        mockMvc.perform(get("/api/orders")
+                        .header("Authorization", "Bearer " + testJwtToken))
                 .andExpect(status().isOk())
                 .andDo(document("get-order-list",
+                        requestHeaders(
+                                headerWithName("Authorization").description("JWT 인증 토큰 (Bearer 타입 필수)")
+                        ),
                         //명시한 핵심 필드만 문서화해 주는 도구
                         relaxedResponseFields(
                                 //실제 데이터는 "content" 배열 안에 있으므로 content[]. 로 시작
