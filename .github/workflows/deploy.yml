@@ -25,9 +25,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 4. 스프링 부트 프로젝트 빌드 (테스트는 시간상 생략)
+      # 4. 스프링 부트 프로젝트 빌드 (테스트와 문서 생성 모두 건너뜁니다)
       - name: Build with Gradle
-        run: ./gradlew clean build -x test
+        run: ./gradlew clean build -x test -x asciidoctor
 
       # 5. 빌드된 .jar 파일을 GCP 서버로 전송 (SCP)
       - name: Transfer JAR to GCP
