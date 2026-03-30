@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users/signup")
+@RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
 
-    @PostMapping
+    @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody @Valid UserSignupDto dto) {
         userService.join(dto.getEmail(), dto.getName(), dto.getPassword());
 
