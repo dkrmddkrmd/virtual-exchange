@@ -54,9 +54,5 @@ jobs:
             # 파일이 전송된 폴더로 이동
             cd ~/exchange-project/app
             
-            # 깃허브 금고에서 환경변수 꺼내서 서버에 임시 주입
-            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            export JWT_SECRET=${{ secrets.JWT_SECRET }}
-            
-            # 백그라운드에서 새로운 .jar 파일 실행 (로그는 app.log에 저장)
-            nohup java -jar *.jar > app.log 2>&1 &
+            # 백그라운드에서 새로운 .jar 파일 실행 (따옴표로 감싸서 안전하게 변수 직접 주입!)
+            nohup java -DDB_PASSWORD="${{ secrets.DB_PASSWORD }}" -DJWT_SECRET="${{ secrets.JWT_SECRET }}" -jar *.jar > app.log 2>&1 &
