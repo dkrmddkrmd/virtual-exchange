@@ -59,7 +59,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 💡 Security용 CORS 허가증 발급기
+    // 💡 Security용 CORS 허가증 발급기.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
