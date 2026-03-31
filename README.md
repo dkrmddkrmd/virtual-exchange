@@ -108,6 +108,7 @@
 
 ```text
 [ GitHub ] ➡ [ GitHub Actions ] ➡ [ Build & Test ] ➡ [ GCP (Backend) / Vercel (Frontend) ]
+```
 
 ## 🚀 How to Run
 ```bash
@@ -119,3 +120,4 @@ docker-compose up -d
 
 # 3. 애플리케이션 실행
 ./gradlew bootRun
+```
