@@ -1,6 +1,6 @@
 # 📈 실시간 대용량 가상 자산 거래 플랫폼 (Virtual Exchange)
 
-👉 **[API 명세서 보러가기](https://dkrmddkrmd.github.io/virtual-exchange/)**
+👉 **[실제 서비스 사이트 방문하기](https://virtual-exchange-frontend.vercel.app/)** | **[API 명세서 보러가기](https://dkrmddkrmd.github.io/virtual-exchange/)**
 
 > **대규모 트래픽 상황에서도 안정적인 주문 처리를 보장하는 가상 자산 모의 투자 서비스입니다.**
 > Upbit API를 활용한 실시간 시세 연동과 Kafka 기반의 비동기 주문 처리를 구현했습니다.
@@ -9,15 +9,16 @@
 
 ## 🛠 Tech Stack
 
-| 분류 | 기술 스택 |
-| :-- | :-- |
-| **Language** | Java 17 |
+| 분류 | 기술 스택                                               |
+| :-- |:----------------------------------------------------|
+| **Language** | Java 17                                             |
 | **Framework** | Spring Boot 3.5.7, Spring Security, Spring Data JPA |
-| **Database** | MySQL, Redis |
-| **Message Queue** | Apache Kafka |
-| **Infrastructure** | Docker, Docker Compose |
-| **Testing & Docs** | JUnit5, JMeter, Spring REST Docs, MockMvc |
-| **Tools** | IntelliJ, Git |
+| **Database** | MySQL, Redis                                        |
+| **Message Queue** | Apache Kafka                                        |
+| **Infrastructure** | GCP (Compute Engine), Nginx, Docker, Docker Compose |
+| **CI/CD** | GitHub Actions, Vercel                              |
+| **Testing & Docs** | JUnit5, JMeter, Spring REST Docs, MockMvc           |
+| **Tools** | IntelliJ, Git                                       |
 
 <br>
 
@@ -25,8 +26,11 @@
 
 ![아키텍처 다이어그램](assets/architecture.png)
 
-* **Redis Caching & Lock:** 자주 조회되는 코인 시세 정보 캐싱(Look-aside) 및 분산 락 제어
-* **Kafka Async Processing:** 주문 요청을 비동기 메시지로 발행하여 트래픽 병목 해소
+* **Redis Caching & Lock:** 자주 조회되는 코인 시세 정보 캐싱(Look-aside) 및 분산 락을 통한 동시성 제어
+* **Kafka Async Processing:** 주문 요청을 비동기 메시지로 발행하여 트래픽 병목을 해소하고 안정적인 처리 구조 구축
+* **Nginx Reverse Proxy:** 백엔드 서버 전면에 배치하여 외부 직접 접근을 차단하고 SSL(HTTPS) 통신 처리로 보안 강화
+* **Hybrid Deployment:** 프론트엔드(Vercel)와 백엔드(GCP)를 분리 배포하여 인프라 독립성과 운영 효율성 확보
+* **CI/CD Pipeline:** GitHub Actions를 활용한 빌드·테스트 자동화 및 배포 프로세스 구축으로 안정적인 배포 환경 구성
 * **Scale-out Consideration:** Docker 컨테이너 기반의 확장성을 고려한 독립적 환경 구성
 
 <br>
@@ -68,6 +72,13 @@
     * **데이터 정합성 보장:** 스케줄러를 통해 10초 주기로 Upbit API의 최신 시세를 DB에 갱신하고, 동시에 기존 캐시를 초기화(`@CacheEvict`)하여 사용자에게 항상 최신 가격 노출.
 * **결과:**
     * 대규모 트래픽 발생 시에도 DB 부하를 원천 차단하고 초고속 조회 응답 속도 유지.
+### 5. 인프라 보안 강화 및 SSL 인증 이슈 해결 (Nginx)
+* **문제 상황:** 
+    * Vercel(HTTPS)과 GCP(HTTP) 간 통신 시 브라우저 보안 정책에 의한 **Mixed Content 오류** 발생.
+* **해결 방안:** 
+    * GCP 인스턴스 전면에 **Nginx Reverse Proxy**를 구축하고 SSL 설정을 적용하여 모든 통신 구간을 HTTPS로 규격화.
+* **결과:** 
+    * 실제 서버 IP/포트 은닉을 통한 보안성 강화 및 프론트-백엔드 간 원활한 데이터 통신 보장.
 
 <br>
 
@@ -90,6 +101,13 @@
 * **JMeter Stress Test:** 1,000명 동시 접속, 총 10,000건 주문 요청 시 **Error 0%** 달성 및 성능 지표 검증.
 
 <br>
+
+## 🚢 CI/CD Pipeline
+* **GitHub Actions 기반 자동화:** `main` 브랜치에 Push 발생 시 자동으로 빌드 및 테스트를 수행하고, **GCP(백엔드)와 Vercel(프론트엔드)**에 동시 배포되는 파이프라인을 구축했습니다.
+* **배포 안정성 확보:** 테스트 코드(`JUnit 5`) 및 API 문서화 테스트가 통과된 시점에만 배포를 진행하여 운영 환경의 무결성을 보장합니다.
+
+```text
+[ GitHub ] ➡ [ GitHub Actions ] ➡ [ Build & Test ] ➡ [ GCP (Backend) / Vercel (Frontend) ]
 
 ## 🚀 How to Run
 ```bash
