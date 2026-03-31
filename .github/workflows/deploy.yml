@@ -48,11 +48,14 @@ jobs:
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_KEY }}
           script: |
-            # 8080 포트를 쓰고 있는 기존 스프링 부트 강제 종료
-            sudo fuser -k -n tcp 8080 || true
+            # 1. 기존 자바 프로세스 확실하게 저격해서 죽이기
+            sudo pkill -f java || true
             
-            # 파일이 전송된 폴더로 이동
+            # 2. 포트가 완전히 닫히고 찌꺼기가 사라질 때까지 10초 대기 (핵심!!!)
+            sleep 10
+            
+            # 3. 파일이 전송된 폴더로 이동
             cd ~/exchange-project/app
             
-            # 백그라운드에서 새로운 .jar 파일 실행 (따옴표로 감싸서 안전하게 변수 직접 주입!)
+            # 4. 새로운 서버 실행
             nohup java -DDB_PASSWORD="${{ secrets.DB_PASSWORD }}" -DJWT_SECRET="${{ secrets.JWT_SECRET }}" -jar *.jar > app.log 2>&1 &
