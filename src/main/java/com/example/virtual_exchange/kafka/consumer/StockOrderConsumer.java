@@ -36,7 +36,8 @@ public class StockOrderConsumer {
                 log.warn("⚠️ 잘못된 주문 타입: {}", message.getOrderType());
             }
 
-        } catch (IllegalArgumentException | IllegalStateException | JsonProcessingException e) {
+        } catch (IllegalArgumentException | JsonProcessingException e) {
+            // 데이터 정합성 오류 (존재하지 않는 유저/종목 등) — 재시도해도 해결 불가
             log.warn("⛔ [처리 불가 - 재시도 X] 사유: {}", e.getMessage());
 
         } catch (Exception e) {

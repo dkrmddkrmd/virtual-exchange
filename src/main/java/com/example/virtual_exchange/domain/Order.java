@@ -32,6 +32,11 @@ public class Order {
     private Long quantity;
     private LocalDateTime orderDate;
 
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    private String failReason;
+
     public Order(User user, Stock stock, OrderType orderType, Double price, Long quantity) {
         this.user = user;
         this.stock = stock;
@@ -39,5 +44,18 @@ public class Order {
         this.price = price;
         this.quantity = quantity;
         this.orderDate = LocalDateTime.now();
+        this.status = OrderStatus.SUCCESS;
+        this.failReason = null;
+    }
+
+    public Order(User user, Stock stock, OrderType orderType, Double price, Long quantity, String failReason) {
+        this.user = user;
+        this.stock = stock;
+        this.orderType = orderType;
+        this.price = price;
+        this.quantity = quantity;
+        this.orderDate = LocalDateTime.now();
+        this.status = OrderStatus.FAILED;
+        this.failReason = failReason;
     }
 }

@@ -26,24 +26,21 @@ public class OrderTransactionService {
         long totalPrice = (long) (stock.getCurrentPrice() * quantity);
 
         if (account.getBalance() < totalPrice) {
-            throw new IllegalStateException("잔액이 부족합니다.");
+            orderRepository.save(new Order(user, stock, OrderType.BUY, stock.getCurrentPrice(), quantity, "잔액이 부족합니다."));
+            log.warn("⛔ [매수 실패] User: {}, 종목: {}, 사유: 잔액 부족", userId, code);
+            return;
         }
 
         account.decreaseBalance(totalPrice);
 
-        StockHolding holding = stockHoldingRepository.findByUserAndStock(user, stock)
-                .orElse(null);
-
+        StockHolding holding = stockHoldingRepository.findByUserAndStock(user, stock).orElse(null);
         if (holding == null) {
-            StockHolding newHolding = new StockHolding(user, stock, quantity, stock.getCurrentPrice());
-            stockHoldingRepository.save(newHolding);
+            stockHoldingRepository.save(new StockHolding(user, stock, quantity, stock.getCurrentPrice()));
         } else {
             holding.addQuantity(quantity, stock.getCurrentPrice());
         }
 
-        Order order = new Order(user, stock, OrderType.BUY, stock.getCurrentPrice(), quantity);
-        orderRepository.save(order);
-
+        orderRepository.save(new Order(user, stock, OrderType.BUY, stock.getCurrentPrice(), quantity));
         log.info("✅ [매수 완료] User: {}, 종목: {}, 수량: {}, 총액: {}", userId, code, quantity, totalPrice);
     }
 
@@ -52,21 +49,25 @@ public class OrderTransactionService {
         Stock stock = getStock(code);
         Account account = getAccount(userId);
 
-        StockHolding stockHolding = stockHoldingRepository.findByUserAndStock(user, stock)
-                .orElseThrow(() -> new IllegalArgumentException("매도할 주식이 없습니다."));
+        StockHolding stockHolding = stockHoldingRepository.findByUserAndStock(user, stock).orElse(null);
 
-        if(stockHolding.getQuantity() < quantity) {
-            throw new IllegalArgumentException("보유 주식 개수가 부족합니다.");
+        if (stockHolding == null) {
+            orderRepository.save(new Order(user, stock, OrderType.SELL, stock.getCurrentPrice(), quantity, "보유한 주식이 없습니다."));
+            log.warn("⛔ [매도 실패] User: {}, 종목: {}, 사유: 보유 주식 없음", userId, code);
+            return;
+        }
+
+        if (stockHolding.getQuantity() < quantity) {
+            orderRepository.save(new Order(user, stock, OrderType.SELL, stock.getCurrentPrice(), quantity, "보유 수량이 부족합니다."));
+            log.warn("⛔ [매도 실패] User: {}, 종목: {}, 사유: 보유 수량 부족", userId, code);
+            return;
         }
 
         long totalPrice = (long) (stock.getCurrentPrice() * quantity);
         account.increaseBalance(totalPrice);
-
         stockHolding.decreaseQuantity(quantity);
 
-        Order order = new Order(user, stock, OrderType.SELL, stock.getCurrentPrice(), quantity);
-        orderRepository.save(order);
-
+        orderRepository.save(new Order(user, stock, OrderType.SELL, stock.getCurrentPrice(), quantity));
         log.info("✅ [매도 완료] User: {}, 종목: {}, 수량: {}, 총액: {}", userId, code, quantity, totalPrice);
     }
 

@@ -1,6 +1,7 @@
 package com.example.virtual_exchange.dto;
 
 import com.example.virtual_exchange.domain.Order;
+import com.example.virtual_exchange.domain.OrderStatus;
 import com.example.virtual_exchange.domain.OrderType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,8 @@ public class OrderHistoryDto {
     private Double price;       // 1주당 가격
     private Double totalAmount; // 총 거래 금액
     private String orderDate;
+    private String status;
+    private String failReason;
 
     public OrderHistoryDto(Order order) {
         this.orderId = order.getId();
@@ -29,5 +32,7 @@ public class OrderHistoryDto {
         this.price = order.getPrice();
         this.totalAmount = order.getPrice() * order.getQuantity();
         this.orderDate = order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        this.status = (order.getStatus() == OrderStatus.SUCCESS) ? "SUCCESS" : "FAILED";
+        this.failReason = order.getFailReason();
     }
 }
