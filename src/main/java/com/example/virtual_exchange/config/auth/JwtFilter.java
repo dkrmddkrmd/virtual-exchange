@@ -36,22 +36,19 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authorizationHeader.substring(7);
 
         // 토큰 검사
-        if (jwtUtil.validateToken(token)) {
-            String email = jwtUtil.getEmailFromToken(token);
-
-            UserDetails userDetails = principalDetailsService.loadUserByUsername(email);
-
-            UsernamePasswordAuthenticationToken securityToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-            // (선택) 통행증에 접속한 IP 주소 같은 디테일 정보도 예쁘게 적어줍니다.
-            securityToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            // (SecurityContextHolder)에 통행증 안착
-            SecurityContextHolder.getContext().setAuthentication(securityToken);
+        if (!jwtUtil.validateToken(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
-        // 할 일 끝났으니 다음 문지기(필터)로 넘겨줌
+        String email = jwtUtil.getEmailFromToken(token);
+        UserDetails userDetails = principalDetailsService.loadUserByUsername(email);
+
+        UsernamePasswordAuthenticationToken securityToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        securityToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(securityToken);
+
         filterChain.doFilter(request, response);
     }
 }

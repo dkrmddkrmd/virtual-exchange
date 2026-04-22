@@ -1,6 +1,6 @@
 package com.example.virtual_exchange.config.auth;
 
-import com.example.virtual_exchange.dto.TokenInfo;
+import com.example.virtual_exchange.domain.User;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -21,47 +21,64 @@ import java.util.stream.Collectors;
 public class JwtUtil {
 
     private final SecretKey secretKey;
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 1일
+    private static final long ACCESS_EXPIRATION  = 1000 * 60 * 30;          // 30분
+    private static final long REFRESH_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
 
     public JwtUtil(@Value("${jwt.secret}") String secretKeyString) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKeyString);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // 토큰 생성
-    public TokenInfo createToken(Authentication authentication) {
+    // 로그인 시 access token 발급 (subject = email)
+    public String createAccessToken(Authentication authentication) {
         PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
-        String email = principal.getUsername();
-
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
-
-        Date now = new Date();
-        Date accessExpiration = new Date(now.getTime() + EXPIRATION_TIME);
-
-        String jwt = Jwts.builder()
-                .subject(email) // 토큰 주인
-                .claim("auth", authorities) // 권한 정보
-                .issuedAt(now)
-                .expiration(accessExpiration)
-                .signWith(secretKey, Jwts.SIG.HS256)
-                .compact();
-
-        return new TokenInfo("Bearer", jwt);
+        return buildToken(principal.getUsername(), authorities, ACCESS_EXPIRATION);
     }
 
-    // 토큰에서 이메일(주인) 꺼내기
+    // 재발급 시 access token 발급 (subject = email)
+    public String createAccessTokenFromUser(User user) {
+        return buildToken(user.getEmail(), user.getRole().name(), ACCESS_EXPIRATION);
+    }
+
+    // refresh token 발급 (subject = userId)
+    public String createRefreshToken(Long userId) {
+        return buildToken(String.valueOf(userId), null, REFRESH_EXPIRATION);
+    }
+
+    private String buildToken(String subject, String authorities, long expirationMs) {
+        Date now = new Date();
+        var builder = Jwts.builder()
+                .subject(subject)
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expirationMs))
+                .signWith(secretKey, Jwts.SIG.HS256);
+        if (authorities != null) {
+            builder.claim("auth", authorities);
+        }
+        return builder.compact();
+    }
+
+    // access token에서 email 추출 (JwtFilter 용)
     public String getEmailFromToken(String token) {
         return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
+                .verifyWith(secretKey).build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload().getSubject();
     }
 
-    // 토큰 검증하기
+    // refresh token에서 userId 추출
+    public Long getUserIdFromToken(String token) {
+        return Long.parseLong(
+                Jwts.parser()
+                        .verifyWith(secretKey).build()
+                        .parseSignedClaims(token)
+                        .getPayload().getSubject()
+        );
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);

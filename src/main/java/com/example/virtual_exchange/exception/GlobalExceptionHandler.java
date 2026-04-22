@@ -33,6 +33,15 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponseDto.of(errorCode, errorCode.getMessage()));
     }
 
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
+        log.warn("유효하지 않은 리프레시 토큰 감지: {}", ex.getMessage());
+        ErrorCode errorCode = ErrorCode.INVALID_REFRESH_TOKEN;
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ErrorResponseDto.of(errorCode));
+    }
+
     @ExceptionHandler(KafkaProducerErrorException.class)
     public ResponseEntity<ErrorResponseDto> handlerKafkaError(KafkaProducerErrorException ex){
         log.error("카프카 API 요청 오류", ex.getMessage(), ex);

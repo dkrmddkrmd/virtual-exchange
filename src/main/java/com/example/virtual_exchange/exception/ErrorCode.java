@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     // 유저 관련
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "U001", "이미 가입된 이메일입니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "U002", "유효하지 않은 리프레시 토큰입니다."),
 
     // 공통/유효성 관련
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "C001", "입력값이 올바르지 않습니다."),
