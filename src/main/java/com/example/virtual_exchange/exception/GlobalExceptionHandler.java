@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(ErrorResponseDto.of(errorCode, errorCode.getMessage()));
+                .body(ErrorResponseDto.of(errorCode, ex.getMessage()));
     }
 
     @ExceptionHandler(DuplicateEmailException.class)

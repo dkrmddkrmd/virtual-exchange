@@ -29,7 +29,7 @@ public class OrderService {
     private final StockOrderProducer stockOrderProducer;
     private final AbnormalTradeDetector detector;
 
-    @Transactional
+    @Transactional(noRollbackFor = AbnormalTradeException.class)
     public void createOrder(Long userId, OrderRequestDto dto) {
         OrderMessageDto message = new OrderMessageDto(
                 userId,
