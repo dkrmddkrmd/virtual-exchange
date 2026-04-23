@@ -12,6 +12,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(AbnormalTradeException.class)
+    public ResponseEntity<ErrorResponseDto> handelAbnormalTrade(AbnormalTradeException ex) {
+        log.error("비정상적인 거래 발생: {}", ex.getMessage());
+        ErrorCode errorCode = ErrorCode.ABNORMAL_TRADE;
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ErrorResponseDto.of(errorCode, errorCode.getMessage()));
+    }
+
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicateEmail(DuplicateEmailException ex) {
         log.error("중복 가입 시도 감지: {}", ex.getMessage(), ex);

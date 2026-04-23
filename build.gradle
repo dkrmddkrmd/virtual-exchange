@@ -40,10 +40,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation' // 유효성 검사용
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6' // 뷰에서 로그인 여부 확인용
-    implementation 'org.redisson:redisson-spring-boot-starter:3.27.0' // Redis & Redisson (분산 락을 위한 핵심 라이브러리)
+    implementation 'org.redisson:redisson:3.27.0' // Redisson (분산 락)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis (Lettuce)
     implementation 'org.springframework.boot:spring-boot-starter-cache' // 캐싱
     implementation 'org.springframework.kafka:spring-kafka' // Kafka 추가
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    implementation 'org.springframework.boot:spring-boot-starter-mail' // 이메일 전송
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 	compileOnly 'org.projectlombok:lombok'

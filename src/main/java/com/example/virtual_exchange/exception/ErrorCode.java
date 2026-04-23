@@ -11,6 +11,9 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "U001", "이미 가입된 이메일입니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "U002", "유효하지 않은 리프레시 토큰입니다."),
 
+    //거래 관련
+    ABNORMAL_TRADE(HttpStatus.FORBIDDEN, "T001", "비정상적인 거래가 요청되었습니다."),
+
     // 공통/유효성 관련
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "C001", "입력값이 올바르지 않습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C002", "서버 내부 오류가 발생했습니다."),

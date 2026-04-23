@@ -1,6 +1,21 @@
 spring:
   profiles:
     active: local # 현재 환경을 로컬(local)로 설정!
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   application:
     name: virtual-exchange
