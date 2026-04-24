@@ -485,7 +485,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="_1_1_회원가입_http_request"><a class="link" href="#_1_1_회원가입_http_request">HTTP request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/users HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/users/signup HTTP/1.1
 Content-Type: application/json
 Content-Length: 65
 Host: localhost:8080
@@ -631,7 +631,7 @@ Content-Length: 56
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/assets/charge HTTP/1.1
 Content-Type: application/json;charset=UTF-8
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjaGFyZ2VUZXN0QHRlc3QuY29tIiwiYXV0aCI6IlVTRVIiLCJpYXQiOjE3NzQ1OTIwMjQsImV4cCI6MTc3NDY3ODQyNH0.6qgSDdf2gkuGBjmy8MnFs6BR6inLKwpcc7J83_PgYJM
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjaGFyZ2VUZXN0QHRlc3QuY29tIiwiaWF0IjoxNzc3MDM2Mzk4LCJleHAiOjE3NzcwMzgxOTgsImF1dGgiOiJVU0VSIn0.zS8gA9sLn8YjUjGMrJFwjzOK--sLZ8HhCmKV-vOKe6E
 Content-Length: 15
 Host: localhost:8080
 
@@ -716,7 +716,7 @@ X-Frame-Options: DENY
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/assets HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdG9ja0hvbGRpbmdBcGlUZXN0ZXJAdGVzdC5jb20iLCJhdXRoIjoiVVNFUiIsImlhdCI6MTc3NDU5MjAyNCwiZXhwIjoxNzc0Njc4NDI0fQ.EM-hiRJ9IixUn2Cd3SM_nWwInpg9mwLjdAodUGUys1E
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdG9ja0hvbGRpbmdBcGlUZXN0ZXJAdGVzdC5jb20iLCJpYXQiOjE3NzcwMzYzOTgsImV4cCI6MTc3NzAzODE5OCwiYXV0aCI6IlVTRVIifQ.qfd30_lfwnQpehtjBG4ejWEIwDb0u9nuYZ55JQxEzpM
 Host: localhost:8080</code></pre>
 </div>
 </div>
@@ -875,7 +875,7 @@ Content-Length: 344
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/orders HTTP/1.1
 Content-Type: application/json;charset=UTF-8
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvcmRlckFwaVRlc3RAdGVzdC5jb21uIiwiYXV0aCI6IlVTRVIiLCJpYXQiOjE3NzQ1OTIwMjMsImV4cCI6MTc3NDY3ODQyM30.QKsKkC1zgh-HkQQrE3YssF_3FdWrn6Cy5WuGBQofFps
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvcmRlckFwaVRlc3RAdGVzdC5jb21uIiwiaWF0IjoxNzc3MDM2Mzk3LCJleHAiOjE3NzcwMzgxOTcsImF1dGgiOiJVU0VSIn0.mpI4gUJcPqsZ-H7DCIMdcAGrTrbxDGwi7hZhPUecE4k
 Content-Length: 46
 Host: localhost:8080
 
@@ -970,7 +970,7 @@ X-Frame-Options: DENY
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/orders HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvcmRlckxpc3RBcGlUZXN0QHRlc3QuY29tbiIsImF1dGgiOiJVU0VSIiwiaWF0IjoxNzc0NTkyMDIyLCJleHAiOjE3NzQ2Nzg0MjJ9.-iWZ-ZVDDdkzp6BFGF42kvGkJEx9kM99ch-8dayiBFY
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvcmRlckxpc3RBcGlUZXN0QHRlc3QuY29tbiIsImlhdCI6MTc3NzAzNjM5NywiZXhwIjoxNzc3MDM4MTk3LCJhdXRoIjoiVVNFUiJ9.3k58hCqXZzHYnIxizeUkqvqBr3DhNFQuj6eXEHjzlHw
 Host: localhost:8080</code></pre>
 </div>
 </div>
@@ -1011,9 +1011,9 @@ Cache-Control: no-cache, no-store, max-age=0, must-revalidate
 Pragma: no-cache
 Expires: 0
 X-Frame-Options: DENY
-Content-Length: 209
+Content-Length: 246
 
-{"content":[{"orderId":1,"stockName":"Code","orderType":"매수","quantity":1,"price":1500.0,"totalAmount":1500.0,"orderDate":"2026-03-19 11:15"}],"page":{"size":1,"number":0,"totalElements":1,"totalPages":1}}</code></pre>
+{"content":[{"orderId":1,"stockName":"Code","orderType":"매수","quantity":1,"price":1500.0,"totalAmount":1500.0,"orderDate":"2026-03-19 11:15","status":"SUCCESS","failReason":null}],"page":{"size":1,"number":0,"totalElements":1,"totalPages":1}}</code></pre>
 </div>
 </div>
 </div>
