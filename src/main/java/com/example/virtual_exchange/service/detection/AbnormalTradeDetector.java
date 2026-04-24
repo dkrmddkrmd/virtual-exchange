@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Objects;
@@ -22,12 +23,13 @@ public class AbnormalTradeDetector {
     private final StockRepository stockRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final Clock clock;
 
     private static final String ORDER_COUNT_PREFIX = "order:count:";
     private static final int MAX_ORDER_PER_MINUTE = 5; // 1분에 5건 초과 시 차단
 
     // 단일 과다 주문
-    private void checkOverTrade(Long userId) {
+    public void checkOverTrade(Long userId) {
         String key = ORDER_COUNT_PREFIX + userId;
         long now = System.currentTimeMillis();
         long windowStart = now - 60_000; // 60초 전
@@ -50,20 +52,20 @@ public class AbnormalTradeDetector {
         redisTemplate.expire(key, 60, java.util.concurrent.TimeUnit.SECONDS);
     }
 
-    private void checkHeavyTrade(Account account, long totalPrice, String email) {
+    public void checkHeavyTrade(Account account, long totalPrice, String email) {
         if(account.getBalance() * 0.8 <= totalPrice)
             emailService.sendAbnormalTradeAlert(email, "보유 자산의 80% 이상의 거래가 발생했습니다.");
     }
 
-    private void checkLargeTrade(long totalPrice, String email) {
+    public void checkLargeTrade(long totalPrice, String email) {
         if(totalPrice >= 10_000_000)
         {
             emailService.sendAbnormalTradeAlert(email, "1천만원 이상의 거래가 발생했습니다.");
         }
     }
 
-    private void checkNightTrade(Account account ,long totalPrice, String email) {
-        int hour = LocalTime.now().getHour();
+    public void checkNightTrade(Account account ,long totalPrice, String email) {
+        int hour = LocalTime.now(clock).getHour();
 
         // 새벽 1~5시 아니면 return
         if (hour < 1 || hour >= 5) return;
