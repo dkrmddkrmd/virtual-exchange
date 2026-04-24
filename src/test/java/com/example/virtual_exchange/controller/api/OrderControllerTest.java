@@ -10,7 +10,9 @@ import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
+import com.example.virtual_exchange.exception.AbnormalTradeException;
 import com.example.virtual_exchange.service.OrderService;
+import com.example.virtual_exchange.service.RefreshTokenService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -53,6 +55,8 @@ public class OrderControllerTest {
     ObjectMapper objectMapper;
     @MockitoBean
     OrderService orderService;
+    @MockitoBean
+    RefreshTokenService refreshTokenService;
     @Autowired
     JwtUtil jwtUtil;
     @MockitoBean
@@ -138,6 +142,44 @@ public class OrderControllerTest {
                                 fieldWithPath("page.totalPages").description("전체 페이지 수"),
                                 fieldWithPath("page.number").description("현재 페이지 번호 (0부터 시작)"),
                                 fieldWithPath("page.size").description("페이지당 데이터 개수")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("이상 거래시 403이 나오는지")
+    public void 이상_거래_테스트() throws Exception {
+        //Given
+        User user = new User("test@test.com", "1234", "tester");
+        PrincipalDetails principalDetails = new PrincipalDetails(user);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
+        String testJwtToken = jwtUtil.createAccessToken(authentication);
+
+        OrderRequestDto dto = new OrderRequestDto("Code", 1L, "BUY");
+        String json = objectMapper.writeValueAsString(dto);
+
+        Mockito.when(principalDetailsService.loadUserByUsername(Mockito.anyString()))
+                .thenReturn(principalDetails);
+
+        // AbnormalTradeException 던지도록 설정
+        Mockito.doThrow(new AbnormalTradeException("단시간 과다 주문으로 차단"))
+                .when(orderService).createOrder(Mockito.any(), Mockito.any());
+
+        // When & Then
+        mockMvc.perform(post("/api/orders")
+                        .header("Authorization", "Bearer " + testJwtToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isForbidden())
+                .andDo(document("order-abnormal-trade",
+                        requestHeaders(
+                                headerWithName("Authorization").description("JWT 인증 토큰 (Bearer 타입 필수)")
+                        ),
+                        requestFields(
+                                fieldWithPath("code").description("주식 종목 코드"),
+                                fieldWithPath("quantity").description("주문 수량"),
+                                fieldWithPath("orderType").description("주문 타입 (BUY 또는 SELL)")
                         )
                 ));
     }
