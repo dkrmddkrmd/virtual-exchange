@@ -9,16 +9,16 @@
 
 ## 🛠 Tech Stack
 
-| 분류 | 기술 스택 |
-| :-- | :-- |
-| **Language** | Java 17 |
+| 분류 | 기술 스택                                               |
+| :-- |:----------------------------------------------------|
+| **Language** | Java 17                                             |
 | **Framework** | Spring Boot 3.5.7, Spring Security, Spring Data JPA |
-| **Database** | MySQL, Redis |
-| **Message Queue** | Apache Kafka |
+| **Database** | MySQL, Redis                                        |
+| **Message Queue** | Apache Kafka                                        |
 | **Infrastructure** | GCP (Compute Engine), Nginx, Docker, Docker Compose |
-| **CI/CD** | GitHub Actions, Vercel |
-| **Testing & Docs** | JUnit5, JMeter, Spring REST Docs, MockMvc |
-| **Tools** | IntelliJ, Git |
+| **CI/CD** | GitHub Actions, Vercel                              |
+| **Testing & Docs** | JUnit5, JMeter, Spring REST Docs, MockMvc           |
+| **Tools** | IntelliJ, Git, Claude Code                          |
 
 <br>
 
