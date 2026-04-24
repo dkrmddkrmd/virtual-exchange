@@ -9,7 +9,6 @@ import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.dto.ChargeRequestDto;
 import com.example.virtual_exchange.dto.MyAssetDto;
 import com.example.virtual_exchange.dto.StockHoldingDto;
-import com.example.virtual_exchange.dto.TokenInfo;
 import com.example.virtual_exchange.service.StockHoldingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -67,8 +66,7 @@ public class StockHoldingControllerTest {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
 
-        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
-        String testJwtToken = tokenInfo.getAccessToken();
+        String testJwtToken = jwtUtil.createAccessToken(authentication);
 
         StockHoldingDto holding1 = StockHoldingDto.builder()
                 .stockCode("KRW-BTC")
@@ -138,8 +136,7 @@ public class StockHoldingControllerTest {
         PrincipalDetails principalDetails = new PrincipalDetails(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
-        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
-        String testJwtToken = tokenInfo.getAccessToken();
+        String testJwtToken = jwtUtil.createAccessToken(authentication);
 
         ChargeRequestDto dto = new ChargeRequestDto(chargeAmount);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -177,8 +174,7 @@ public class StockHoldingControllerTest {
         PrincipalDetails principalDetails = new PrincipalDetails(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
-        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
-        String testJwtToken = tokenInfo.getAccessToken();
+        String testJwtToken = jwtUtil.createAccessToken(authentication);
 
         ChargeRequestDto dto = new ChargeRequestDto(chargeAmount);
         ObjectMapper objectMapper = new ObjectMapper();

@@ -10,7 +10,6 @@ import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
-import com.example.virtual_exchange.dto.TokenInfo;
 import com.example.virtual_exchange.service.OrderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,8 +66,7 @@ public class OrderControllerTest {
         PrincipalDetails principalDetails = new PrincipalDetails(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
-        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
-        String testJwtToken = tokenInfo.getAccessToken();
+        String testJwtToken = jwtUtil.createAccessToken(authentication);
 
         OrderRequestDto dto = new OrderRequestDto("Code", 1L, "BUY");
 
@@ -102,14 +100,13 @@ public class OrderControllerTest {
         PrincipalDetails principalDetails = new PrincipalDetails(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
-        TokenInfo tokenInfo = jwtUtil.createToken(authentication);
-        String testJwtToken = tokenInfo.getAccessToken();
+        String testJwtToken = jwtUtil.createAccessToken(authentication);
 
         Stock stock = new Stock("Code", "Name", 1000D);
 
         PageRequest pageRequest = PageRequest.of(0, 10);
 
-        OrderHistoryDto dto = new OrderHistoryDto(1L, "Code", "매수", 1L, 1500D, 1500D, "2026-03-19 11:15");
+        OrderHistoryDto dto = new OrderHistoryDto(1L, "Code", "매수", 1L, 1500D, 1500D, "2026-03-19 11:15", "SUCCESS", null);
         List<OrderHistoryDto> orderList = List.of(dto);
         Page<OrderHistoryDto> orderPage = new PageImpl<>(orderList);
 
