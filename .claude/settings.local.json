@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs wc *)"
+      "Bash(xargs wc *)",
+      "Bash(./gradlew test *)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-21.0.10\" ./gradlew test *)",
+      "PowerShell(Test-NetConnection *)",
+      "PowerShell(\\(New-Object System.Net.Sockets.TcpClient\\).Connect\\('localhost', 3306\\); Write-Output \"MySQL:OK\")",
+      "PowerShell(\\(New-Object System.Net.Sockets.TcpClient\\).Connect\\('localhost', 6379\\); Write-Output \"Redis:OK\")"
     ]
   }
 }

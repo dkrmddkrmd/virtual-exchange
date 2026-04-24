@@ -4,6 +4,7 @@ import com.example.virtual_exchange.config.auth.JwtUtil;
 import com.example.virtual_exchange.config.auth.PrincipalDetails;
 import com.example.virtual_exchange.config.auth.PrincipalDetailsService;
 import com.example.virtual_exchange.config.auth.SecurityConfig;
+import com.example.virtual_exchange.service.RefreshTokenService;
 import com.example.virtual_exchange.domain.Stock;
 import com.example.virtual_exchange.domain.User;
 import com.example.virtual_exchange.dto.ChargeRequestDto;
@@ -54,6 +55,9 @@ public class StockHoldingControllerTest {
 
     @MockitoBean
     PrincipalDetailsService principalDetailsService;
+
+    @MockitoBean
+    RefreshTokenService refreshTokenService;
 
     @Test
     @DisplayName("포트폴리오 조회 및 문서 테스트")
