@@ -180,6 +180,10 @@ public class OrderControllerTest {
                                 fieldWithPath("code").description("주식 종목 코드"),
                                 fieldWithPath("quantity").description("주문 수량"),
                                 fieldWithPath("orderType").description("주문 타입 (BUY 또는 SELL)")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").description("에러 코드 (T001)"),
+                                fieldWithPath("message").description("차단 사유")
                         )
                 ));
     }

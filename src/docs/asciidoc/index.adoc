@@ -15,6 +15,20 @@ operation::user-signup[snippets='http-request,request-fields,http-response']
 
 ---
 
+=== 1.2 Access Token 재발급
+Refresh Token 쿠키를 사용해 만료된 Access Token과 Refresh Token을 갱신합니다. (Rotation 방식)
+
+operation::user-reissue[snippets='http-request,request-cookies,http-response,response-cookies,response-fields']
+
+---
+
+=== 1.3 로그아웃
+Refresh Token을 Redis에서 삭제하고 쿠키를 만료시킵니다.
+
+operation::user-logout[snippets='http-request,request-cookies,http-response']
+
+---
+
 == 📈 2. 주식 API (Stock)
 
 === 2.1 주식 목록 전체 조회
@@ -49,3 +63,10 @@ operation::create-order[snippets='http-request,request-headers,request-fields,ht
 로그인한 유저의 과거 주문 내역을 페이징 처리하여 최신순으로 조회합니다.
 
 operation::get-order-list[snippets='http-request,request-headers,http-response,response-fields']
+
+---
+
+=== 4.3 이상 거래 차단 (403 Forbidden)
+단시간 과다 주문 등 이상 거래로 탐지되면 주문이 차단되고 403을 반환합니다.
+
+operation::order-abnormal-trade[snippets='http-request,request-headers,request-fields,http-response,response-fields']

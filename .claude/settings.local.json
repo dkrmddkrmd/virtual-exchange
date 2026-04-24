@@ -6,7 +6,8 @@
       "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-21.0.10\" ./gradlew test *)",
       "PowerShell(Test-NetConnection *)",
       "PowerShell(\\(New-Object System.Net.Sockets.TcpClient\\).Connect\\('localhost', 3306\\); Write-Output \"MySQL:OK\")",
-      "PowerShell(\\(New-Object System.Net.Sockets.TcpClient\\).Connect\\('localhost', 6379\\); Write-Output \"Redis:OK\")"
+      "PowerShell(\\(New-Object System.Net.Sockets.TcpClient\\).Connect\\('localhost', 6379\\); Write-Output \"Redis:OK\")",
+      "Bash(DB_PASSWORD=\"5678\" JWT_SECRET=\"eW91ci12ZXJ5LWxvbmctYW5kLXNlY3VyZS1yYW5kb20tc2VjcmV0LWtleS1waHJhc2U=\" MAIL_USERNAME=\"dkrmddkrmd@gmail.com\" MAIL_PASSWORD=\"htwrezvuhomtmbei\" JAVA_HOME=\"/c/Program Files/Java/jdk-21.0.10\" ./gradlew build *)"
     ]
   }
 }

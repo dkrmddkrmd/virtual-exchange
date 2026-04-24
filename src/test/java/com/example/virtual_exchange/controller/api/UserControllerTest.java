@@ -22,6 +22,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 
+import static org.springframework.restdocs.cookies.CookieDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -107,8 +108,14 @@ public class UserControllerTest {
                 .andExpect(cookie().exists("refreshToken"))          // 쿠키 존재 확인
                 .andExpect(cookie().httpOnly("refreshToken", true))  // HttpOnly 확인
                 .andDo(document("user-reissue",
+                        requestCookies(
+                                cookieWithName("refreshToken").description("유효한 Refresh Token")
+                        ),
+                        responseCookies(
+                                cookieWithName("refreshToken").description("새로 발급된 Refresh Token (HttpOnly, 7일 유효)")
+                        ),
                         responseFields(
-                                fieldWithPath("grantType").description("토큰 타입"),
+                                fieldWithPath("grantType").description("토큰 타입 (Bearer)"),
                                 fieldWithPath("accessToken").description("새로 발급된 Access Token")
                         )));
     }
@@ -125,6 +132,9 @@ public class UserControllerTest {
                         .cookie(new Cookie("refreshToken", "validToken")))
                 .andExpect(status().isNoContent())
                 .andExpect(cookie().maxAge("refreshToken", 0)) // 쿠키 만료 확인
-                .andDo(document("user-logout"));
+                .andDo(document("user-logout",
+                        requestCookies(
+                                cookieWithName("refreshToken").description("만료시킬 Refresh Token")
+                        )));
     }
 }
