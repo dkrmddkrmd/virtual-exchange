@@ -1,19 +1,18 @@
 package com.example.virtual_exchange.service;
 
-import com.example.virtual_exchange.domain.Account;
-import com.example.virtual_exchange.domain.Stock;
-import com.example.virtual_exchange.domain.StockHolding;
-import com.example.virtual_exchange.domain.User;
+import com.example.virtual_exchange.domain.*;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.repository.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -62,6 +61,7 @@ public class OrderTransactionTest {
     public void 매도_테스트(){
         //Given
         User user = new User("test@test.com", "1234", "tester");
+        ReflectionTestUtils.setField(user, "id", 1L);
         Stock stock = new Stock("Coin", "coin", 1000D);
         Account account = new Account(user);
         account.increaseBalance(10000L);
@@ -72,10 +72,14 @@ public class OrderTransactionTest {
         // 처음 사는 주식이니까 보유 주식은 없다고 설정
         Mockito.when(stockHoldingRepository.findByUserAndStock(user, stock)).thenReturn(Optional.empty());
 
-        //When & Then
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            orderTransactionService.sell(user.getId(), stock.getCode(), 1L);
-        });
+        //When
+        orderTransactionService.sell(user.getId(), stock.getCode(), 1L);
+
+        //Then
+        // ArgumentCaptor로 저장된 Order 캡처
+        ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
+        Mockito.verify(orderRepository).save(captor.capture());
+        Assertions.assertEquals(OrderStatus.FAILED, captor.getValue().getStatus());
     }
 
     @Test
@@ -117,10 +121,13 @@ public class OrderTransactionTest {
         Mockito.when(stockRepository.findById(Mockito.any())).thenReturn(Optional.of(stock));
         Mockito.when(accountRepository.findByUserId(Mockito.any())).thenReturn(Optional.of(account));
 
-        //When & Then
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-           orderTransactionService.buy(user.getId(), stock.getCode(), 1L);
-        });
+        //When
+        orderTransactionService.sell(user.getId(), stock.getCode(), 1L);
+
+        //Then
+        ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
+        Mockito.verify(orderRepository).save(captor.capture());
+        Assertions.assertEquals(OrderStatus.FAILED, captor.getValue().getStatus());
     }
 
     @Test
@@ -165,9 +172,12 @@ public class OrderTransactionTest {
         // 처음 사는 주식이니까 보유 주식은 없다고 설정
         Mockito.when(stockHoldingRepository.findByUserAndStock(user, stock)).thenReturn(Optional.of(stockHolding));
 
-        //When & Then
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-           orderTransactionService.sell(user.getId(), stock.getCode(), 3L);
-        });
+        //When
+        orderTransactionService.sell(user.getId(), stock.getCode(), 2L);
+
+        //Then
+        ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
+        Mockito.verify(orderRepository).save(captor.capture());
+        Assertions.assertEquals(OrderStatus.FAILED, captor.getValue().getStatus());
     }
 }
