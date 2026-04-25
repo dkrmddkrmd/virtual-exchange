@@ -1,6 +1,8 @@
 package com.example.virtual_exchange.exception;
 
 import com.example.virtual_exchange.dto.ErrorResponseDto;
+import com.example.virtual_exchange.service.detection.SlackNotificationService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +11,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
+@RequiredArgsConstructor
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final SlackNotificationService slackNotificationService;
 
     @ExceptionHandler(AbnormalTradeException.class)
     public ResponseEntity<ErrorResponseDto> handelAbnormalTrade(AbnormalTradeException ex) {
@@ -35,6 +40,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UpbitApiCallException.class)
     public ResponseEntity<ErrorResponseDto> handleApiCallError(UpbitApiCallException ex) {
         log.error("Upbit API 오류: {}", ex.getMessage(), ex);
+        slackNotificationService.sendServerError("UpbitApiCallException", ex.getMessage());
 
         ErrorCode errorCode = ErrorCode.UPBIT_API_ERROR;
 
@@ -55,6 +61,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(KafkaProducerErrorException.class)
     public ResponseEntity<ErrorResponseDto> handlerKafkaError(KafkaProducerErrorException ex){
         log.error("카프카 API 요청 오류", ex.getMessage(), ex);
+        slackNotificationService.sendServerError("KafkaProducerErrorException", ex.getMessage());
 
         ErrorCode errorCode = ErrorCode.Kafka_API_ERROR;
 
@@ -97,6 +104,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
         ex.printStackTrace(); // 콘솔에 에러 로그는 찍어줌 (디버깅용)
+        slackNotificationService.sendServerError(ex.getClass().getSimpleName(), ex.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

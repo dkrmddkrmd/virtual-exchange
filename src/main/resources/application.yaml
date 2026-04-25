@@ -56,3 +56,7 @@ server:
   servlet:
     session:
       persistent: false
+
+slack:
+  webhook:
+    url: ${SLACK_WEBHOOK_URL}
