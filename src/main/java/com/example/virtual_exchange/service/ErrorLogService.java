@@ -21,6 +21,7 @@ public class ErrorLogService {
     @Async
     public void saveErrorLog(Exception ex, HttpServletRequest request) {
         String stackTrace = Arrays.stream(ex.getStackTrace())
+                .limit(20)
                 .map(StackTraceElement::toString)
                 .collect(Collectors.joining("\n"));
 
