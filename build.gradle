@@ -46,6 +46,8 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka' // Kafka 추가
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     implementation 'org.springframework.boot:spring-boot-starter-mail' // 이메일 전송
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb' // Mongo DB
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 	compileOnly 'org.projectlombok:lombok'

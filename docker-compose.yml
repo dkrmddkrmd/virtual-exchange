@@ -1,4 +1,5 @@
-version: '3'
+version: '3' # 최신 도커에서는 삭제해도 되지만, 일단 유지하셔도 무방합니다.
+
 services:
   # 1. 주키퍼 (Zookeeper)
   zookeeper:
@@ -15,12 +16,25 @@ services:
       - "9092:9092"
     environment:
       KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
-
       KAFKA_ADVERTISED_PORT: 9092
-
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-data:/kafka # 카프카 메시지 데이터 영구 저장
     depends_on:
       - zookeeper
 
+  # 3. MongoDB
+  mongo:
+    image: mongo:latest
+    container_name: stock-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db # MongoDB 데이터 영구 저장
+    restart: always
+
+# 💾 도커 외장하드(볼륨) 선언
+volumes:
+  mongo-data:
+  kafka-data:

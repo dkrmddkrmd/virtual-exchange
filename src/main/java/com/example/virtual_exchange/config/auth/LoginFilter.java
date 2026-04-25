@@ -1,7 +1,9 @@
 package com.example.virtual_exchange.config.auth;
 
+import com.example.virtual_exchange.domain.ActivityType;
 import com.example.virtual_exchange.dto.LoginRequestDto;
 import com.example.virtual_exchange.dto.TokenInfo;
+import com.example.virtual_exchange.service.ActivityLogService;
 import com.example.virtual_exchange.service.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -20,11 +22,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
+    private final ActivityLogService activityLogService;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService) {
+    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil,
+                       RefreshTokenService refreshTokenService, ActivityLogService activityLogService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
+        this.activityLogService = activityLogService;
         setFilterProcessesUrl("/api/users/login");
     }
 
@@ -53,11 +58,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         refreshTokenService.save(userId, refreshToken);
         CookieUtil.setRefreshCookie(response, refreshToken);
 
+        String forwarded = request.getHeader("X-Forwarded-For");
+        String ip = (forwarded != null && !forwarded.isBlank()) ? forwarded.split(",")[0].trim() : request.getRemoteAddr();
+        activityLogService.saveActivityLog(userId, ActivityType.LOGIN, "로그인", ip);
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         String body = new ObjectMapper().writeValueAsString(new TokenInfo("Bearer", accessToken));
         response.getWriter().write(body);
     }
-
-
 }

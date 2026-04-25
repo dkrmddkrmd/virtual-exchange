@@ -1,5 +1,6 @@
 package com.example.virtual_exchange.config.auth;
 
+import com.example.virtual_exchange.service.ActivityLogService;
 import com.example.virtual_exchange.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final RefreshTokenService refreshTokenService;
+    private final ActivityLogService activityLogService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
@@ -51,7 +53,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, LoginFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshTokenService), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshTokenService, activityLogService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -1,6 +1,8 @@
 package com.example.virtual_exchange.controller.api;
 
+import com.example.virtual_exchange.annotation.LogActivity;
 import com.example.virtual_exchange.config.auth.PrincipalDetails;
+import com.example.virtual_exchange.domain.ActivityType;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.facade.RedissonLockStockFacade;
@@ -13,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal; // 2. 어노테이션 import
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -24,19 +26,20 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    @LogActivity(activityType = ActivityType.ORDER_CREATE, description = "주문 생성")
     @PostMapping
     public ResponseEntity<String> createOrder(
-            @AuthenticationPrincipal PrincipalDetails principalDetails, // 1. 인증 정보 받기
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
             @RequestBody @Valid OrderRequestDto requestDto) {
 
         Long userId = principalDetails.getUser().getId();
-
         orderService.createOrder(userId, requestDto);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("주문 접수 완료");
     }
 
-    @GetMapping // URL 유지
+    @LogActivity(activityType = ActivityType.ORDER_VIEW, description = "주문 내역 조회")
+    @GetMapping
     public ResponseEntity<Page<OrderHistoryDto>> getOrderLists(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PageableDefault(size = 10) Pageable pageable
