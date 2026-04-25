@@ -47,4 +47,5 @@ jobs:
             JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
             MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+            SLACK_WEBHOOK_URL="${{ secrets.SLACK_WEBHOOK_URL }}" \
             nohup java -jar build/libs/virtual-exchange-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
