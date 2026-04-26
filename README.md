@@ -1,6 +1,6 @@
 # 📈 실시간 대용량 가상 자산 거래 플랫폼 (Virtual Exchange)
 
-👉 **[API 명세서 보러가기](https://dkrmddkrmd.github.io/virtual-exchange/)**
+👉 **[API 명세서 보러가기](https://dkrmddkrmd.github.io/virtual-exchange/)** | 📄 **[포트폴리오 보기](https://github.com/dkrmddkrmd/virtual-exchange/blob/main/portfolio.pdf)**
 
 > **대규모 트래픽 상황에서도 안정적인 주문 처리를 보장하는 가상 자산 모의 투자 서비스입니다.**
 > Upbit API를 활용한 실시간 시세 연동과 Kafka 기반의 비동기 주문 처리를 구현했습니다.
