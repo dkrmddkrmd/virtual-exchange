@@ -1,5 +1,6 @@
 # 📈 실시간 대용량 가상 자산 거래 플랫폼 (Virtual Exchange)
 
+👉 **[서비스 바로가기 (Live Demo)](https://virtual-exchange-frontend.vercel.app/)**
 👉 **[API 명세서 보러가기](https://dkrmddkrmd.github.io/virtual-exchange/)** | 📄 **[포트폴리오 보기](https://github.com/dkrmddkrmd/virtual-exchange/blob/main/portfolio.pdf)**
 
 > **대규모 트래픽 상황에서도 안정적인 주문 처리를 보장하는 가상 자산 모의 투자 서비스입니다.**
