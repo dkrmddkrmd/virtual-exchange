@@ -39,7 +39,7 @@ public class OrderService {
         );
 
         try {
-            detector.checkAbnormalTrade(message);
+            //detector.checkAbnormalTrade(message);
         } catch (AbnormalTradeException ex) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
