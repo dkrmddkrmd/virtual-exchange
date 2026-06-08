@@ -43,25 +43,25 @@ public class OrderService {
                 dto.getOrderType()
         );
 
-//        try {
-//            detector.checkAbnormalTrade(message);
-//        } catch (AbnormalTradeException ex) {
-//            User user = userRepository.findById(userId)
-//                    .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
-//            Stock stock = stockRepository.findById(dto.getCode())
-//                    .orElseThrow(() -> new IllegalArgumentException("없는 종목입니다."));
-//
-//            orderRepository.save(new Order(
-//                    user,
-//                    stock,
-//                    OrderType.valueOf(dto.getOrderType()),
-//                    stock.getCurrentPrice(),
-//                    dto.getQuantity(),
-//                    ex.getMessage()
-//            ));
-//            log.warn("[Service] 이상 거래 차단 - User: {}, 사유: {}", userId, ex.getMessage());
-//            throw ex;
-//        }
+        try {
+            detector.checkAbnormalTrade(message);
+        } catch (AbnormalTradeException ex) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("없는 유저입니다."));
+            Stock stock = stockRepository.findById(dto.getCode())
+                    .orElseThrow(() -> new IllegalArgumentException("없는 종목입니다."));
+
+            orderRepository.save(new Order(
+                    user,
+                    stock,
+                    OrderType.valueOf(dto.getOrderType()),
+                    stock.getCurrentPrice(),
+                    dto.getQuantity(),
+                    ex.getMessage()
+            ));
+            log.warn("[Service] 이상 거래 차단 - User: {}, 사유: {}", userId, ex.getMessage());
+            throw ex;
+        }
 
         stockOrderProducer.sendOrder(message);
         log.info("[Service] 주문 요청 전송 완료 - User: {}", userId);
