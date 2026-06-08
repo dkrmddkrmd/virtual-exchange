@@ -10,8 +10,18 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    // Pageable 추가 + 반환 타입 Page<Order>로 변경
-    @Query(value = "select o from Order o join fetch o.stock where o.user.id = :userId order by o.orderDate desc",
-            countQuery = "select count(o) from Order o where o.user.id = :userId")
-    Page<Order> findAllByUserIdWithStock(@Param("userId") Long userId, Pageable pageable);
+
+    // 1. 커서가 없을 때 (첫 페이지 조회)
+    // ORDER BY o.id DESC를 사용합니다. (보통 id가 생성 순서대로 커지므로 orderDate와 동일한 정렬 효과를 가집니다)
+    @Query("SELECT o FROM Order o JOIN FETCH o.stock " +
+            "WHERE o.user.id = :userId " +
+            "ORDER BY o.id DESC")
+    List<Order> findFirstPageByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    // 2. 커서가 있을 때 (두 번째 페이지부터 조회)
+    // 핵심: o.id < :lastOrderId 조건으로 앞선 데이터를 완벽히 건너뜁니다!
+    @Query("SELECT o FROM Order o JOIN FETCH o.stock " +
+            "WHERE o.user.id = :userId AND o.id < :lastOrderId " +
+            "ORDER BY o.id DESC")
+    List<Order> findNextPageByUserId(@Param("userId") Long userId, @Param("lastOrderId") Long lastOrderId, Pageable pageable);
 }

@@ -3,6 +3,7 @@ package com.example.virtual_exchange.controller.api;
 import com.example.virtual_exchange.annotation.LogActivity;
 import com.example.virtual_exchange.config.auth.PrincipalDetails;
 import com.example.virtual_exchange.domain.ActivityType;
+import com.example.virtual_exchange.dto.CursorResult;
 import com.example.virtual_exchange.dto.OrderHistoryDto;
 import com.example.virtual_exchange.dto.OrderRequestDto;
 import com.example.virtual_exchange.facade.RedissonLockStockFacade;
@@ -38,17 +39,19 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("주문 접수 완료");
     }
 
-    @LogActivity(activityType = ActivityType.ORDER_VIEW, description = "주문 내역 조회")
+    @LogActivity(activityType = ActivityType.ORDER_VIEW, description = "주문 내역 커서 페이징 조회")
     @GetMapping
-    public ResponseEntity<Page<OrderHistoryDto>> getOrderLists(
+    public ResponseEntity<CursorResult<OrderHistoryDto>> getOrderLists(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PageableDefault(size = 10) Pageable pageable
+            @RequestParam(required = false) Long lastOrderId, // 커서 값 (첫 요청 시엔 안 보내므로 null)
+            @RequestParam(defaultValue = "10") int size
     ) {
         Long userId = principalDetails.getUser().getId();
 
-        log.info("[Controller] 주문 내역 조회 요청 - User: {}, Page: {}", userId, pageable.getPageNumber());
-        Page<OrderHistoryDto> orderList = orderService.getOrderLists(userId, pageable);
+        log.info("[Controller] 주문 내역 Cursor 페이징 요청 - User: {}, LastOrderId: {}", userId, lastOrderId);
 
-        return ResponseEntity.ok(orderList);
+        CursorResult<OrderHistoryDto> orderResult = orderService.getOrderListsCursor(userId, lastOrderId, size);
+
+        return ResponseEntity.ok(orderResult);
     }
 }
